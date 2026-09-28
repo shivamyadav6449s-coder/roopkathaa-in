@@ -263,33 +263,30 @@ nav a:hover {
 
 /* HERO - PREMIUM */
 
+/* Hero is now one full-width banner image (text, tagline and the
+   "Shop Collection" pill are all part of the photo itself), with an
+   invisible link laid over the pill so it stays a real, clickable
+   "Shop Collection" button. background-color matches the image's own
+   off-white backdrop so there's no flash before it loads. */
 .hero {
     width: 100%;
-    height: 85vh;
-    min-height: 600px;
-    background:
-        linear-gradient(90deg, rgba(253,246,242,.92), rgba(253,246,242,.55)),
-        url("https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&q=90");
-    background-size: cover;
-    background-position: center 20%;
-    background-repeat: no-repeat;
-    display: flex;
-    align-items: center;
-    padding: 0 8%;
-    color: #3d1512;
+    position: relative;
     overflow: hidden;
+    background: #fdf6f2;
 }
 
-.hero-content {
-    position: relative;
-    z-index: 5;
+.hero-banner-img {
     width: 100%;
-    max-width: 620px;
-    padding: 42px 45px;
-    border-left: 3px solid #e0776a;
-    background: linear-gradient(90deg, rgba(253,246,242,.9), rgba(253,246,242,.55), transparent);
-    backdrop-filter: blur(2px);
-    animation: heroContentIn 1s ease forwards;
+    height: auto;
+    display: block;
+}
+
+.hero-shop-link {
+    position: absolute;
+    left: 41%;
+    top: 61.5%;
+    width: 17%;
+    height: 11%;
 }
 
 .small-title,
@@ -309,30 +306,6 @@ nav a:hover {
     text-transform: uppercase;
     color: #c65a4a;
     margin-bottom: 20px;
-}
-
-.hero h1 {
-    font-family: "DM Serif Display", serif;
-    font-size: clamp(50px, 7vw, 88px);
-    line-height: .96;
-    margin-bottom: 25px;
-    font-weight: normal;
-    color: #3d1512;
-    text-shadow: none;
-}
-
-.hero h1 em {
-    font-weight: normal;
-    font-style: italic;
-    color: #e0776a;
-}
-
-.hero-content > p:not(.small-title) {
-    max-width: 470px;
-    line-height: 1.8;
-    font-size: 14px;
-    color: #6b4a42;
-    margin-bottom: 35px;
 }
 
 .btn {
@@ -823,17 +796,6 @@ footer {
 
 @media (max-width: 900px) {
 
-    .hero {
-        min-height: 580px;
-        height: 72vh;
-        padding: 0 6%;
-        background-position: 60% 20%;
-    }
-
-    .hero-content {
-        max-width: 500px;
-    }
-
     nav {
         display: none;
     }
@@ -900,34 +862,10 @@ footer {
         gap: 8px;
     }
 
-    .hero {
-        height: 76vh;
-        min-height: 570px;
-        padding: 0 24px;
-        background:
-            linear-gradient(90deg, rgba(253,246,242,.94), rgba(253,246,242,.6)),
-            url("https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=90");
-        background-size: cover;
-        background-position: 67% 20%;
-    }
-
-    .hero-content {
-        max-width: 100%;
-        padding: 30px 24px;
-        border-left: 2px solid #e0776a;
-        background: linear-gradient(90deg, rgba(253,246,242,.92), rgba(253,246,242,.6), transparent);
-    }
-
     .small-title {
         font-size: 9px;
         letter-spacing: 2.5px;
         margin-bottom: 15px;
-    }
-
-    .hero h1 {
-        font-size: clamp(40px, 12vw, 54px);
-        line-height: .98;
-        margin-bottom: 20px;
     }
 
     .section {
@@ -1150,30 +1088,11 @@ footer {
 }
 
 
-/* SMALL MOBILE HERO */
+/* SMALL MOBILE */
 @media (max-width: 400px) {
-    .hero {
-        min-height: 540px;
-        height: 72vh;
-        padding: 0 20px;
-        background-position: 70% 20%;
-    }
-
-    .hero-content {
-        padding: 25px 20px;
-    }
-
-    .hero h1 {
-        font-size: 39px;
-    }
-
     .small-title {
         font-size: 8px;
         letter-spacing: 1.5px;
-    }
-
-    .hero-content > p:not(.small-title) {
-        font-size: 11.5px;
     }
 }
 
