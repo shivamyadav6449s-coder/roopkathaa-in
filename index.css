@@ -33,22 +33,23 @@ button {
 /* ANNOUNCEMENT */
 
 .announcement {
-    background: #3d1512;
-    color: white;
+    background: #f5e6dc;
+    color: #3d1512;
     text-align: center;
     padding: 10px;
     font-size: 11px;
     letter-spacing: 2px;
+    border-bottom: 1px solid #ecd8d0;
 }
 
 .announce-sep {
     margin: 0 10px;
-    color: #e0776a;
+    color: #c9a99f;
 }
 
 #countdown {
     font-weight: 600;
-    color: #f2b8ab;
+    color: #c65a4a;
     letter-spacing: 1px;
 }
 
@@ -91,6 +92,13 @@ button {
     height: 54px;
 }
 
+/* Footer brand mark — same logo image, sized for the footer heading
+   row; footer-grid h3 already centers items on the baseline via
+   align-items so it lines up with the ".IN" text beside it. */
+.footer-logo-img {
+    height: 34px;
+}
+
 .logo-hindi {
     font-family: "Tiro Devanagari Hindi", serif;
     font-style: italic;
@@ -104,8 +112,8 @@ button {
 
 .footer-grid h3 {
     display: flex;
-    align-items: baseline;
-    gap: 3px;
+    align-items: center;
+    gap: 8px;
 }
 
 .footer-grid h3 .logo-hindi {
@@ -207,20 +215,21 @@ nav a:hover {
 
 .account-logout-btn {
     width: 100%;
-    background: #3d1512;
-    color: #fff;
+    background: #fff;
+    color: #3d1512;
     border: 1px solid #3d1512;
     padding: 10px 16px;
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 1.5px;
     text-transform: uppercase;
-    transition: background .3s ease, color .3s ease;
+    transition: background .3s ease, color .3s ease, border-color .3s ease;
 }
 
 .account-logout-btn:hover {
-    background: #e0776a;
+    background: #f2ded3;
     border-color: #e0776a;
+    color: #3d1512;
 }
 
 @media (max-width: 600px) {
@@ -259,7 +268,7 @@ nav a:hover {
     height: 85vh;
     min-height: 600px;
     background:
-        linear-gradient(90deg, rgba(61,21,18,.68), rgba(61,21,18,.10)),
+        linear-gradient(90deg, rgba(253,246,242,.92), rgba(253,246,242,.55)),
         url("https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1800&q=90");
     background-size: cover;
     background-position: center 20%;
@@ -267,7 +276,7 @@ nav a:hover {
     display: flex;
     align-items: center;
     padding: 0 8%;
-    color: white;
+    color: #3d1512;
     overflow: hidden;
 }
 
@@ -278,7 +287,7 @@ nav a:hover {
     max-width: 620px;
     padding: 42px 45px;
     border-left: 3px solid #e0776a;
-    background: linear-gradient(90deg, rgba(61,21,18,.78), rgba(61,21,18,.35), transparent);
+    background: linear-gradient(90deg, rgba(253,246,242,.9), rgba(253,246,242,.55), transparent);
     backdrop-filter: blur(2px);
     animation: heroContentIn 1s ease forwards;
 }
@@ -298,7 +307,7 @@ nav a:hover {
     font-weight: 600;
     letter-spacing: 4px;
     text-transform: uppercase;
-    color: #f2b8ab;
+    color: #c65a4a;
     margin-bottom: 20px;
 }
 
@@ -308,21 +317,21 @@ nav a:hover {
     line-height: .96;
     margin-bottom: 25px;
     font-weight: normal;
-    color: #fff;
-    text-shadow: 0 8px 25px rgba(0,0,0,.35);
+    color: #3d1512;
+    text-shadow: none;
 }
 
 .hero h1 em {
     font-weight: normal;
     font-style: italic;
-    color: #f2b8ab;
+    color: #e0776a;
 }
 
 .hero-content > p:not(.small-title) {
     max-width: 470px;
     line-height: 1.8;
     font-size: 14px;
-    color: rgba(255,255,255,.88);
+    color: #6b4a42;
     margin-bottom: 35px;
 }
 
@@ -331,20 +340,21 @@ nav a:hover {
     align-items: center;
     justify-content: center;
     padding: 15px 30px;
-    background: white;
+    background: #fff;
     color: #3d1512;
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 2px;
     text-transform: uppercase;
-    border: 1px solid white;
-    transition: background .35s ease, color .35s ease, transform .35s ease;
+    border: 1px solid #3d1512;
+    box-shadow: 0 6px 18px rgba(61,21,18,.08);
+    transition: background .35s ease, color .35s ease, transform .35s ease, border-color .35s ease;
 }
 
 .btn:hover {
-    background: #e0776a;
+    background: #f2ded3;
     border-color: #e0776a;
-    color: white;
+    color: #3d1512;
     transform: translateY(-3px);
 }
 
@@ -420,11 +430,12 @@ nav a:hover {
 
     padding: 35px 25px 25px;
 
-    color: white;
+    color: #3d1512;
 
     background: linear-gradient(
         transparent,
-        rgba(61, 21, 18, .82)
+        rgba(253,246,242,.35) 55%,
+        rgba(253,246,242,.96)
     );
 }
 
@@ -437,6 +448,7 @@ nav a:hover {
 .category-info a {
     font-size: 10px;
     letter-spacing: 2px;
+    border-bottom: 1px solid #3d1512;
 }
 
 
@@ -484,8 +496,9 @@ nav a:hover {
 }
 
 .tag-new {
-    background: #3d1512;
-    color: white;
+    background: #fff;
+    color: #3d1512;
+    border: 1px solid #3d1512;
 }
 
 .tag-sale {
@@ -525,8 +538,9 @@ nav a:hover {
 }
 
 .outline-btn:hover {
-    background: #3d1512;
-    color: white;
+    background: #f2ded3;
+    border-color: #e0776a;
+    color: #3d1512;
 }
 
 
@@ -534,10 +548,12 @@ nav a:hover {
 
 .marquee {
     overflow: hidden;
-    background: #3d1512;
-    color: white;
+    background: #f5e6dc;
+    color: #3d1512;
     padding: 20px 0;
     white-space: nowrap;
+    border-top: 1px solid #ecd8d0;
+    border-bottom: 1px solid #ecd8d0;
 }
 
 .marquee span {
@@ -611,12 +627,12 @@ nav a:hover {
 
     padding: 8%;
 
-    color: white;
+    color: #3d1512;
 
     background:
         linear-gradient(
-            rgba(61,21,18,.45),
-            rgba(61,21,18,.55)
+            rgba(253,246,242,.88),
+            rgba(253,246,242,.9)
         ),
         url("https://images.unsplash.com/photo-1594223274512-ad4803739b7c?auto=format&fit=crop&w=1800&q=90")
         center/cover;
@@ -639,7 +655,7 @@ nav a:hover {
 }
 
 .story .outline-btn {
-    border-color: white;
+    border-color: #3d1512;
 }
 
 
@@ -727,12 +743,17 @@ nav a:hover {
 }
 
 .email-box button {
-    border: none;
-    background: #3d1512;
-    color: white;
+    border: 1px solid #3d1512;
+    background: #fff;
+    color: #3d1512;
     padding: 0 25px;
     letter-spacing: 1px;
     font-size: 11px;
+    transition: background .3s ease;
+}
+
+.email-box button:hover {
+    background: #f2ded3;
 }
 
 .newsletter-msg {
@@ -746,9 +767,10 @@ nav a:hover {
 /* FOOTER */
 
 footer {
-    background: #3d1512;
-    color: white;
+    background: #f5e6dc;
+    color: #3d1512;
     padding: 70px 5% 25px;
+    border-top: 1px solid #ecd8d0;
 }
 
 .footer-grid {
@@ -771,25 +793,25 @@ footer {
 }
 
 .footer-grid p {
-    color: #d9b8b0;
+    color: #6b4a42;
     line-height: 1.8;
 }
 
 .footer-grid a {
     display: block;
-    color: #d9b8b0;
+    color: #6b4a42;
     font-size: 12px;
     margin-bottom: 12px;
 }
 
 .footer-grid a:hover {
-    color: white;
+    color: #3d1512;
 }
 
 .copyright {
-    border-top: 1px solid #6b332c;
+    border-top: 1px solid #e7c9bc;
     padding-top: 25px;
-    color: #cfa79e;
+    color: #8a6a63;
     font-size: 10px;
     text-align: center;
 }
@@ -883,7 +905,7 @@ footer {
         min-height: 570px;
         padding: 0 24px;
         background:
-            linear-gradient(90deg, rgba(61,21,18,.72), rgba(61,21,18,.25)),
+            linear-gradient(90deg, rgba(253,246,242,.94), rgba(253,246,242,.6)),
             url("https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=1000&q=90");
         background-size: cover;
         background-position: 67% 20%;
@@ -893,7 +915,7 @@ footer {
         max-width: 100%;
         padding: 30px 24px;
         border-left: 2px solid #e0776a;
-        background: linear-gradient(90deg, rgba(61,21,18,.78), rgba(61,21,18,.25), transparent);
+        background: linear-gradient(90deg, rgba(253,246,242,.92), rgba(253,246,242,.6), transparent);
     }
 
     .small-title {
@@ -1026,11 +1048,11 @@ footer {
         scale(1.12)
         translateZ(35px);
 
-    filter: brightness(0.78);
+    filter: brightness(1.02);
 }
 
 
-/* DARK GRADIENT */
+/* LIGHT FROSTED GRADIENT (legibility for the label, off-white palette) */
 
 .category-card::after {
     content: "";
@@ -1043,8 +1065,8 @@ footer {
         linear-gradient(
             180deg,
             transparent 45%,
-            rgba(61,21,18,.2) 60%,
-            rgba(61,21,18,.85) 100%
+            rgba(253,246,242,.35) 65%,
+            rgba(253,246,242,.95) 100%
         );
 
     pointer-events: none;
@@ -1056,8 +1078,8 @@ footer {
     background:
         linear-gradient(
             180deg,
-            rgba(61,21,18,.08),
-            rgba(61,21,18,.8)
+            rgba(253,246,242,.12),
+            rgba(253,246,242,.92)
         );
 }
 
@@ -1073,7 +1095,7 @@ footer {
 
     padding: 35px 25px;
 
-    color: white;
+    color: #3d1512;
 
     z-index: 3;
 
@@ -1102,8 +1124,7 @@ footer {
 
     margin-bottom: 12px;
 
-    text-shadow:
-        0 5px 15px rgba(0,0,0,.35);
+    text-shadow: none;
 }
 
 
@@ -1118,7 +1139,7 @@ footer {
 
     padding-bottom: 5px;
 
-    border-bottom: 1px solid white;
+    border-bottom: 1px solid #3d1512;
 
     transition:
         letter-spacing .4s ease;
@@ -1170,8 +1191,10 @@ footer {
     grid-template-columns: repeat(4, 1fr);
     gap: 20px;
     padding: 34px 5%;
-    background: #3d1512;
-    color: white;
+    background: #f5e6dc;
+    color: #3d1512;
+    border-top: 1px solid #ecd8d0;
+    border-bottom: 1px solid #ecd8d0;
 }
 
 .trust-item {
@@ -1194,7 +1217,7 @@ footer {
 
 .trust-item p {
     font-size: 11px;
-    color: #d9b8b0;
+    color: #6b4a42;
 }
 
 
@@ -1263,8 +1286,8 @@ footer {
 }
 
 .wish-btn:hover {
-    background: #3d1512;
-    color: white;
+    background: #f2ded3;
+    color: #3d1512;
 }
 
 .wish-btn.active {
@@ -1278,9 +1301,10 @@ footer {
     right: 0;
     bottom: -50px;
     z-index: 3;
-    background: rgba(61,21,18,.92);
-    color: white;
+    background: rgba(255,255,255,.95);
+    color: #3d1512;
     border: none;
+    border-top: 1px solid #ecd8d0;
     padding: 13px;
     font-size: 10px;
     letter-spacing: 2px;
@@ -1304,8 +1328,9 @@ footer {
 }
 
 .add-cart-btn:hover {
-    background: #3d1512;
-    color: white;
+    background: #f2ded3;
+    border-color: #e0776a;
+    color: #3d1512;
 }
 
 .add-cart-btn.added {
@@ -1422,8 +1447,9 @@ footer {
 
 .chip-filter.active,
 .chip-filter:hover {
-    background: #3d1512;
-    color: white;
+    background: #f2ded3;
+    border-color: #e0776a;
+    color: #3d1512;
 }
 
 .product.hidden-by-filter {
@@ -1478,8 +1504,8 @@ footer {
 .gallery-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(61,21,18,.45);
-    color: white;
+    background: rgba(253,246,242,.88);
+    color: #3d1512;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1504,7 +1530,7 @@ footer {
 .social-row a {
     width: 34px;
     height: 34px;
-    border: 1px solid #6b332c;
+    border: 1px solid #ecd8d0;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -1512,6 +1538,7 @@ footer {
     font-size: 10px;
     letter-spacing: 0;
     margin-bottom: 0;
+    color: #3d1512;
 }
 
 .social-row a:hover {
@@ -1528,7 +1555,7 @@ footer {
 .overlay-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(61,21,18,.55);
+    background: rgba(61,21,18,.35);
     z-index: 190;
     opacity: 0;
     visibility: hidden;
@@ -1615,7 +1642,7 @@ footer {
     flex-direction: column;
     transform: translateY(-100%);
     transition: transform .4s cubic-bezier(.2,.8,.2,1);
-    box-shadow: 0 20px 40px rgba(0,0,0,.15);
+    box-shadow: 0 20px 40px rgba(61,21,18,.1);
 }
 
 .search-overlay.active {
@@ -1659,9 +1686,9 @@ footer {
 }
 
 .chip:hover {
-    background: #3d1512;
-    color: white;
-    border-color: #3d1512;
+    background: #f2ded3;
+    color: #3d1512;
+    border-color: #e0776a;
 }
 
 
@@ -1805,15 +1832,15 @@ footer {
 
 .cart-checkout-btn {
     width: 100%;
-    background: #3d1512;
+    background: #e0776a;
     color: white;
-    border-color: #3d1512;
+    border-color: #e0776a;
     margin-bottom: 10px;
 }
 
 .cart-checkout-btn:hover {
-    background: #e0776a;
-    border-color: #e0776a;
+    background: #eb9184;
+    border-color: #eb9184;
 }
 
 .cart-continue-btn {
@@ -1898,9 +1925,9 @@ footer {
 
 .qv-view-btn.active,
 .qv-view-btn:hover {
-    border-color: #3d1512;
-    background: #3d1512;
-    color: white;
+    border-color: #e0776a;
+    background: #f2ded3;
+    color: #3d1512;
 }
 
 .quickview-details {
@@ -1964,8 +1991,8 @@ footer {
 .size-btn.active,
 .size-btn:hover {
     border-color: #3d1512;
-    background: #3d1512;
-    color: white;
+    background: #f2ded3;
+    color: #3d1512;
 }
 
 .qty-stepper {
@@ -1992,14 +2019,14 @@ footer {
 
 .qv-add-btn {
     width: 100%;
-    background: #3d1512;
-    border-color: #3d1512;
+    background: #e0776a;
+    border-color: #e0776a;
     color: white;
 }
 
 .qv-add-btn:hover {
-    background: #e0776a;
-    border-color: #e0776a;
+    background: #eb9184;
+    border-color: #eb9184;
 }
 
 
@@ -2263,17 +2290,18 @@ footer {
 }
 
 .upi-copy-btn {
-    background: #3d1512;
-    color: white;
-    border: none;
+    background: #fff;
+    color: #3d1512;
+    border: 1px solid #3d1512;
     padding: 8px 14px;
     font-size: 10px;
     letter-spacing: 1px;
     cursor: pointer;
+    transition: background .3s ease;
 }
 
 .upi-copy-btn:hover {
-    background: #e0776a;
+    background: #f2ded3;
 }
 
 .upi-pay-btn {
@@ -2371,14 +2399,14 @@ footer {
 .checkout-place-btn {
     width: 100%;
     text-align: center;
-    background: #3d1512;
-    border-color: #3d1512;
+    background: #e0776a;
+    border-color: #e0776a;
     color: white;
 }
 
 .checkout-place-btn:hover {
-    background: #e0776a;
-    border-color: #e0776a;
+    background: #eb9184;
+    border-color: #eb9184;
 }
 
 .checkout-secure-note {
@@ -2402,8 +2430,9 @@ footer {
     width: 64px;
     height: 64px;
     border-radius: 50%;
-    background: #3d1512;
-    color: white;
+    background: #eaf7ef;
+    border: 2px solid #1a8a4a;
+    color: #1a8a4a;
     font-size: 28px;
     margin-bottom: 22px;
 }
@@ -2437,8 +2466,10 @@ footer {
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%) translateY(20px);
-    background: #3d1512;
-    color: white;
+    background: #fff;
+    color: #3d1512;
+    border: 1px solid #ecd8d0;
+    box-shadow: 0 10px 30px rgba(61,21,18,.12);
     padding: 14px 26px;
     font-size: 12px;
     letter-spacing: .5px;
@@ -2467,9 +2498,10 @@ footer {
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: #3d1512;
-    color: white;
-    border: none;
+    background: #fff;
+    color: #3d1512;
+    border: 1px solid #ecd8d0;
+    box-shadow: 0 8px 22px rgba(61,21,18,.12);
     font-size: 18px;
     z-index: 150;
     opacity: 0;
@@ -2485,7 +2517,8 @@ footer {
 }
 
 .back-to-top:hover {
-    background: #e0776a;
+    background: #f2ded3;
+    border-color: #e0776a;
 }
 
 .whatsapp-btn {
@@ -2504,7 +2537,7 @@ footer {
     font-weight: 700;
     letter-spacing: 0;
     z-index: 150;
-    box-shadow: 0 6px 18px rgba(0,0,0,.25);
+    box-shadow: 0 6px 18px rgba(61,21,18,.15);
 }
 
 

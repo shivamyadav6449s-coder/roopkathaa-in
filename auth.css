@@ -204,16 +204,16 @@
 
 .auth-submit {
     width: 100%;
-    background: #3d1512;
+    background: #e0776a;
     color: #fff;
-    border-color: #3d1512;
+    border-color: #e0776a;
     padding: 15px 30px;
     margin-bottom: 8px;
 }
 
 .auth-submit:hover {
-    background: #e0776a;
-    border-color: #e0776a;
+    background: #eb9184;
+    border-color: #eb9184;
 }
 
 .auth-submit:disabled {
