@@ -1590,39 +1590,107 @@ footer {
     height: 100%;
     background: #fdf6f2;
     z-index: 200;
-    padding: 30px 28px;
+    padding: 26px 0 28px;
     display: flex;
     flex-direction: column;
     transform: translateX(-100%);
     transition: transform .4s cubic-bezier(.2,.8,.2,1);
+    box-shadow: 0 0 40px rgba(61,21,18,.12);
 }
 
 .mobile-menu.active {
     transform: translateX(0);
 }
 
+.mobile-menu .close-panel {
+    align-self: flex-end;
+    margin: 0 22px 0 0;
+}
+
+/* Brand block at the top of the drawer — same logo + tagline used
+   on the navbar/login screen, so the menu feels like part of the
+   same premium, off-white identity rather than a bare list. */
+.mobile-menu-brand {
+    text-align: center;
+    padding: 4px 28px 22px;
+    border-bottom: 1px solid #ecd8d0;
+}
+
+.mobile-menu-logo {
+    height: 40px;
+    margin: 0 auto 10px;
+}
+
+.mobile-menu-tagline {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #8a6a63;
+}
+
 .mobile-nav {
     display: flex;
     flex-direction: column;
-    gap: 26px;
-    margin-top: 40px;
+    margin-top: 6px;
+    padding: 0 28px;
 }
 
 .mobile-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     font-family: "DM Serif Display", serif;
-    font-size: 24px;
+    font-size: 21px;
+    color: #3d1512;
+    padding: 16px 4px;
+    border-bottom: 1px solid #f2e6de;
+    transition: color .2s ease, padding-left .2s ease;
+}
+
+.mobile-nav .mobile-link:last-child {
+    border-bottom: none;
+}
+
+.mobile-link i {
+    font-style: normal;
+    color: #e0776a;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+.mobile-link:hover,
+.mobile-link:focus-visible,
+.mobile-link:active {
+    color: #e0776a;
+    padding-left: 10px;
+}
+
+.mobile-link:hover i,
+.mobile-link:focus-visible i,
+.mobile-link:active i {
+    opacity: 1;
+    transform: translateX(0);
 }
 
 .mobile-menu-footer {
     margin-top: auto;
-    padding-top: 30px;
+    padding: 22px 28px 0;
     border-top: 1px solid #ecd8d0;
     font-size: 12px;
     color: #6b4a42;
 }
 
 .mobile-menu-footer a {
+    color: #e0776a;
+    font-weight: 600;
     text-decoration: underline;
+}
+
+.mobile-menu-social {
+    margin-top: 16px;
+    gap: 10px;
 }
 
 
