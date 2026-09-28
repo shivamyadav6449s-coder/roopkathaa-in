@@ -73,6 +73,17 @@
     }
 
     function redirectHome() {
+        // If we got sent here from a specific place (e.g. checkout
+        // redirected a guest here to log in first), go back there
+        // instead of always landing on "/". Only ever follow a
+        // same-site path (starts with a single "/", never "//..."),
+        // so this can't be used to redirect somewhere off-site.
+        var params = new URLSearchParams(window.location.search);
+        var redirect = params.get("redirect");
+        if (redirect && redirect.charAt(0) === "/" && redirect.charAt(1) !== "/") {
+            window.location.href = redirect;
+            return;
+        }
         window.location.href = "/";
     }
 

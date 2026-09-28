@@ -1830,11 +1830,52 @@ footer {
 .quickview-image {
     background: #f2ded3;
     min-height: 420px;
+    display: flex;
+    flex-direction: column;
 }
 
 .quickview-image img {
-    height: 100%;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
     object-fit: cover;
+    transition: opacity .2s ease;
+}
+
+/* Anarkali FRONT/BACK viewer — swaps between the product's two
+   existing photos only; this class just drives the crossfade. */
+.qv-image-fade {
+    opacity: 0;
+}
+
+.qv-view-toggle {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    padding: 14px;
+    background: #f2ded3;
+    border-top: 1px solid #ecd8d0;
+}
+
+.qv-view-toggle[hidden] {
+    display: none;
+}
+
+.qv-view-btn {
+    padding: 8px 24px;
+    border: 1px solid #ecd8d0;
+    background: transparent;
+    color: #3d1512;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+}
+
+.qv-view-btn.active,
+.qv-view-btn:hover {
+    border-color: #3d1512;
+    background: #3d1512;
+    color: white;
 }
 
 .quickview-details {

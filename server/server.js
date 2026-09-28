@@ -42,16 +42,13 @@ app.use("/api/auth/register", authLimiter);
 app.use("/api/auth", authRouter);
 
 /* ---------- Protected routes ----------
-   The shop itself (index.html / "/") requires a logged-in
-   session. Anyone without a valid session is redirected to the
-   login screen — this is enforced here on the server, not just
-   hidden with CSS/JS, so it's a real protected route. */
-app.get(["/", "/index.html"], function (req, res, next) {
-    if (!getUserFromReq(req)) {
-        return res.redirect("/login.html");
-    }
-    next();
-});
+   The shop itself (index.html / "/") is public — anyone can browse
+   the site, view products and use the cart without an account.
+   Login/registration is only required at checkout, which is
+   enforced by the /api/auth/me check the frontend runs before
+   opening the checkout form (see script.js). Genuinely private
+   routes (account info, placing an order, etc.) still check
+   getUserFromReq() the same way they always did. */
 
 /* A user who is already logged in doesn't need to see the
    login screen again. */

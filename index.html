@@ -13,8 +13,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Tiro+Devanagari+Hindi:ital@0;1&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Requires a valid login session (checked against the server) — kicked
-         to /login.html if not logged in, and fills in the navbar name below. -->
+    <!-- Site is open to guests — this just quietly checks whether the
+         visitor happens to be logged in already, and if so fills in
+         their name in the navbar below. Login itself is only required
+         later, at checkout. -->
     <script src="auth-guard.js"></script>
 </head>
 
@@ -880,6 +882,10 @@
     <button class="close-panel" id="quickviewClose" aria-label="Close quick view">×</button>
     <div class="quickview-image">
         <img id="qvImage" src="" alt="">
+        <div class="qv-view-toggle" id="qvViewToggle" hidden>
+            <button type="button" class="qv-view-btn active" id="qvViewFront" data-view="front">FRONT</button>
+            <button type="button" class="qv-view-btn" id="qvViewBack" data-view="back">BACK</button>
+        </div>
     </div>
     <div class="quickview-details">
         <h3 id="qvName"></h3>

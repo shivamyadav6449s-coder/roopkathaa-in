@@ -1,16 +1,17 @@
 /* ==========================================================
    ROOPKATHAA.IN — AUTH GUARD (for index.html / the shop pages)
    ----------------------------------------------------------
-   The server already refuses to serve "/" to anyone without a
-   valid login session and redirects them to /login.html — that
-   is the real protected route. This script is the second half:
-   once the page IS loaded (meaning the visitor is genuinely
-   logged in), it fetches who they are and:
-     - shows their name in the navbar instead of a bare icon
-     - wires up the Logout button
-   It also redirects to the login page as a safety net if the
-   session turns out to be invalid (e.g. it expired while this
-   tab was sitting open).
+   The shop is public now — guests can browse everything without
+   logging in. This script just checks (quietly, in the background)
+   whether the visitor happens to already be logged in:
+     - if yes: shows their name in the navbar instead of a bare
+       icon, and wires up the Logout button
+     - if no: leaves the navbar as a plain "Login" entry point —
+       it does NOT redirect anyone away from the page
+   Login is only actually required later, at checkout (see the
+   auth check inside openCheckout() in script.js). Other scripts
+   can check window.RK_AUTH.loggedIn to see the result of this
+   check once it has run.
 ========================================================== */
 
 (function () {
@@ -18,12 +19,24 @@
 
     function $(id) { return document.getElementById(id); }
 
+    window.RK_AUTH = { loggedIn: false, user: null };
+
     function goToLogin() {
         window.location.href = "/login.html";
     }
 
     function firstName(fullName) {
         return String(fullName || "").trim().split(/\s+/)[0] || "Account";
+    }
+
+    function wireGuestAccountButton() {
+        var accountBtn = $("accountBtn");
+        if (accountBtn) {
+            accountBtn.addEventListener("click", function (e) {
+                e.stopPropagation();
+                goToLogin();
+            });
+        }
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -35,6 +48,8 @@
             .then(function (data) {
                 var user = data.user;
                 if (!user) throw new Error("no user");
+
+                window.RK_AUTH = { loggedIn: true, user: user };
 
                 var nameEl = $("navUserName");
                 var dropdownName = $("dropdownUserName");
@@ -68,7 +83,11 @@
                 }
             })
             .catch(function () {
-                goToLogin();
+                // Not logged in — that's fine, the visitor is a guest.
+                // Don't redirect; just leave the account icon as a
+                // plain link to the login page.
+                window.RK_AUTH = { loggedIn: false, user: null };
+                wireGuestAccountButton();
             });
     });
 })();

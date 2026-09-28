@@ -342,17 +342,44 @@
         }
     });
 
-    function openCheckout() {
-        if (cart.length === 0) {
-            showToast("Your bag is empty");
-            return;
-        }
+    function showCheckoutForm() {
         checkoutFormView.hidden = false;
         checkoutFormView.classList.add("active");
         checkoutSuccessView.hidden = true;
         renderCheckoutSummary();
         closePanel(cartDrawer, cartBackdrop);
         openPanel(checkoutModal, checkoutBackdrop);
+    }
+
+    function goToLoginForCheckout() {
+        // Browsing and the cart are fully open to guests — an account
+        // is only needed at this point, right before placing an order.
+        // Bring them back here (with the cart still intact in
+        // localStorage) once they've logged in.
+        var returnTo = window.location.pathname + "?checkout=1";
+        window.location.href = "/login.html?redirect=" + encodeURIComponent(returnTo);
+    }
+
+    function openCheckout() {
+        if (cart.length === 0) {
+            showToast("Your bag is empty");
+            return;
+        }
+        // Re-check auth fresh every time (a session can log out/expire
+        // in another tab), then either continue straight to the
+        // checkout form or send a guest to log in first.
+        fetch("/api/auth/me", { credentials: "include" })
+            .then(function (res) { return res.ok ? res.json() : null; })
+            .then(function (data) {
+                if (data && data.user) {
+                    showCheckoutForm();
+                } else {
+                    goToLoginForCheckout();
+                }
+            })
+            .catch(function () {
+                goToLoginForCheckout();
+            });
     }
 
     if (checkoutBtn) checkoutBtn.addEventListener("click", openCheckout);
@@ -565,10 +592,34 @@
     var qvQtyMinus = document.getElementById("qvQtyMinus");
     var qvQtyPlus = document.getElementById("qvQtyPlus");
     var qvAddBtn = document.getElementById("qvAddBtn");
+    var qvViewToggle = document.getElementById("qvViewToggle");
+    var qvViewFront = document.getElementById("qvViewFront");
+    var qvViewBack = document.getElementById("qvViewBack");
 
     var currentQVProduct = null;
     var currentQVQty = 1;
     var currentQVSize = "M";
+    var currentQVFront = null;
+    var currentQVBack = null;
+
+    /* Swaps the big Quick View image between the product's existing
+       FRONT and BACK photos (only — never generates or fetches any
+       other image). Used by the FRONT/BACK buttons, arrow keys and
+       swipe below. */
+    function setQVView(which) {
+        var src = which === "back" ? currentQVBack : currentQVFront;
+        if (!qvImage || !src) return;
+
+        qvImage.classList.add("qv-image-fade");
+        setTimeout(function () {
+            qvImage.src = src;
+            if (currentQVProduct) currentQVProduct.image = src;
+            qvImage.classList.remove("qv-image-fade");
+        }, 150);
+
+        if (qvViewFront) qvViewFront.classList.toggle("active", which !== "back");
+        if (qvViewBack) qvViewBack.classList.toggle("active", which === "back");
+    }
 
     function openQuickView(card) {
         var name = productDisplayName(card);
@@ -576,13 +627,26 @@
         var oldPrice = card.getAttribute("data-old-price");
         var image = card.getAttribute("data-image");
 
-        currentQVProduct = { name: name, price: price, image: image };
+        var frontEl = card.querySelector(".img-front");
+        var backEl = card.querySelector(".img-back");
+        currentQVFront = frontEl ? frontEl.src : image;
+        currentQVBack = backEl ? backEl.src : null;
+
+        currentQVProduct = { name: name, price: price, image: currentQVFront || image };
         currentQVQty = 1;
         currentQVSize = "M";
 
-        if (qvImage) { qvImage.src = image; qvImage.alt = name; }
+        if (qvImage) { qvImage.src = currentQVFront || image; qvImage.alt = name; qvImage.classList.remove("qv-image-fade"); }
         if (qvName) qvName.textContent = name;
         if (qvQty) qvQty.textContent = currentQVQty;
+
+        // Only Anarkali (and any other) products that actually have a
+        // second, back-facing photo get the FRONT/BACK toggle — a
+        // product with just one image (e.g. the Mustard variant) shows
+        // its single image exactly as before, no toggle shown.
+        if (qvViewToggle) qvViewToggle.hidden = !currentQVBack;
+        if (qvViewFront) qvViewFront.classList.add("active");
+        if (qvViewBack) qvViewBack.classList.remove("active");
 
         if (qvPriceRow) {
             var html = '<span class="price">' + money(price) + '</span>';
@@ -607,6 +671,31 @@
             if (card) openQuickView(card);
         });
     });
+
+    if (qvViewFront) qvViewFront.addEventListener("click", function () { setQVView("front"); });
+    if (qvViewBack) qvViewBack.addEventListener("click", function () { setQVView("back"); });
+
+    // Left/right arrow keys switch FRONT/BACK while Quick View is open.
+    document.addEventListener("keydown", function (e) {
+        if (!quickviewModal || !quickviewModal.classList.contains("active") || !currentQVBack) return;
+        if (e.key === "ArrowLeft") setQVView("front");
+        if (e.key === "ArrowRight") setQVView("back");
+    });
+
+    // Swipe left/right on the image itself does the same, for mobile.
+    if (qvImage) {
+        var qvTouchStartX = null;
+        qvImage.addEventListener("touchstart", function (e) {
+            qvTouchStartX = e.changedTouches[0].clientX;
+        }, { passive: true });
+        qvImage.addEventListener("touchend", function (e) {
+            if (qvTouchStartX === null || !currentQVBack) return;
+            var dx = e.changedTouches[0].clientX - qvTouchStartX;
+            qvTouchStartX = null;
+            if (Math.abs(dx) < 40) return;
+            setQVView(dx < 0 ? "back" : "front");
+        }, { passive: true });
+    }
 
     if (quickviewClose) quickviewClose.addEventListener("click", function () {
         closePanel(quickviewModal, quickviewBackdrop);
@@ -725,5 +814,27 @@
 
     updateCountdown();
     setInterval(updateCountdown, 1000);
+
+
+    /* ---------- RESUME CHECKOUT AFTER LOGIN ----------
+       A guest who tried to check out gets sent to /login.html and,
+       on success, back here at "...?checkout=1" (see auth.js's
+       redirectHome() and goToLoginForCheckout() above). Their cart
+       was never touched — it's been sitting in localStorage the
+       whole time — so all that's left is to clean the URL and
+       re-open the checkout modal automatically. */
+    (function resumeCheckoutIfNeeded() {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get("checkout") !== "1") return;
+
+        params.delete("checkout");
+        var qs = params.toString();
+        var cleanUrl = window.location.pathname + (qs ? "?" + qs : "") + window.location.hash;
+        window.history.replaceState(null, "", cleanUrl);
+
+        if (cart.length > 0) {
+            openCheckout();
+        }
+    })();
 
 })();
