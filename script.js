@@ -49,14 +49,14 @@
         if (panelEl) panelEl.classList.remove("active");
         if (backdropEl) backdropEl.classList.remove("active");
         var anyOpen = document.querySelector(
-            ".mobile-menu.active, .search-overlay.active, .cart-drawer.active, .quickview-modal.active, .checkout-modal.active"
+            ".mobile-menu.active, .search-overlay.active, .cart-drawer.active, .quickview-modal.active, .checkout-modal.active, .size-chart-modal.active"
         );
         if (!anyOpen) document.body.style.overflow = "";
     }
 
     function closeAllPanels() {
         document.querySelectorAll(
-            ".mobile-menu, .search-overlay, .cart-drawer, .quickview-modal, .checkout-modal"
+            ".mobile-menu, .search-overlay, .cart-drawer, .quickview-modal, .checkout-modal, .size-chart-modal"
         ).forEach(function (el) { el.classList.remove("active"); });
         document.querySelectorAll(".overlay-backdrop").forEach(function (el) {
             el.classList.remove("active");
@@ -111,6 +111,9 @@
     var searchClose = document.getElementById("searchClose");
     var searchInput = document.getElementById("searchInput");
 
+    var noResultsMsg = document.getElementById("noResultsMsg");
+    var searchFilterChips = document.querySelectorAll(".chip-filter");
+
     if (searchToggle) searchToggle.addEventListener("click", function () {
         openPanel(searchOverlay, null);
         setTimeout(function () { if (searchInput) searchInput.focus(); }, 300);
@@ -118,8 +121,64 @@
     if (searchClose) searchClose.addEventListener("click", function () {
         closePanel(searchOverlay, null);
     });
+
+    /* Filters the New Arrivals grid by product name/category text —
+       same show/hide mechanism the category chips already use, so it
+       plays nicely with them (a live search resets the chips back to
+       "All" since a text search isn't tied to one category). */
+    function runSiteSearch(rawQuery) {
+        var query = String(rawQuery || "").trim().toLowerCase();
+        if (!newArrivalsGrid) return;
+
+        var cards = newArrivalsGrid.querySelectorAll(".product");
+        if (!query) {
+            cards.forEach(function (card) { card.classList.remove("hidden-by-filter"); });
+            if (noResultsMsg) noResultsMsg.hidden = true;
+            return;
+        }
+
+        searchFilterChips.forEach(function (c) { c.classList.remove("active"); });
+        var allChip = document.querySelector('.chip-filter[data-filter="all"]');
+        if (allChip) allChip.classList.add("active");
+
+        var anyVisible = false;
+        cards.forEach(function (card) {
+            var haystack = (
+                (card.getAttribute("data-name") || "") + " " +
+                (card.getAttribute("data-category") || "")
+            ).toLowerCase();
+            var show = haystack.indexOf(query) !== -1;
+            card.classList.toggle("hidden-by-filter", !show);
+            if (show) anyVisible = true;
+        });
+
+        if (noResultsMsg) noResultsMsg.hidden = anyVisible;
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", function () {
+            runSiteSearch(searchInput.value);
+        });
+        searchInput.addEventListener("keydown", function (e) {
+            if (e.key !== "Enter") return;
+            e.preventDefault();
+            runSiteSearch(searchInput.value);
+            closeAllPanels();
+            var target = document.getElementById("new-arrivals");
+            if (target) target.scrollIntoView({ behavior: "smooth" });
+        });
+    }
+
     document.querySelectorAll(".search-box .chip").forEach(function (a) {
-        a.addEventListener("click", closeAllPanels);
+        a.addEventListener("click", function (e) {
+            e.preventDefault();
+            var term = a.textContent.trim();
+            if (searchInput) searchInput.value = term;
+            runSiteSearch(term);
+            closeAllPanels();
+            var target = document.getElementById("new-arrivals");
+            if (target) target.scrollIntoView({ behavior: "smooth" });
+        });
     });
 
 
@@ -701,6 +760,25 @@
         closePanel(quickviewModal, quickviewBackdrop);
     });
     if (quickviewBackdrop) quickviewBackdrop.addEventListener("click", closeAllPanels);
+
+
+    /* ---------- SIZE CHART ----------
+       One shared chart image, reused for every category (Anarkali,
+       Short Kurti, Lehnga, Saree) — opened from the "SIZE CHART" link
+       inside Quick View, so it automatically works for every product
+       without any per-category setup. */
+    var sizeChartBtn = document.getElementById("sizeChartBtn");
+    var sizeChartModal = document.getElementById("sizeChartModal");
+    var sizeChartBackdrop = document.getElementById("sizeChartBackdrop");
+    var sizeChartClose = document.getElementById("sizeChartClose");
+
+    if (sizeChartBtn) sizeChartBtn.addEventListener("click", function () {
+        openPanel(sizeChartModal, sizeChartBackdrop);
+    });
+    if (sizeChartClose) sizeChartClose.addEventListener("click", function () {
+        closePanel(sizeChartModal, sizeChartBackdrop);
+    });
+    if (sizeChartBackdrop) sizeChartBackdrop.addEventListener("click", closeAllPanels);
 
     document.querySelectorAll(".size-btn").forEach(function (btn) {
         btn.addEventListener("click", function () {
