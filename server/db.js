@@ -43,6 +43,8 @@ async function getMongoDb() {
         mongoClientPromise = client.connect().then(async function (connectedClient) {
             const database = connectedClient.db(); // uses the db name from the connection string
             await database.collection("users").createIndex({ email: 1 }, { unique: true });
+            await database.collection("orders").createIndex({ id: 1 }, { unique: true });
+            await database.collection("orders").createIndex({ razorpayOrderId: 1 });
             return database;
         });
     }
@@ -83,6 +85,30 @@ const mongoImpl = {
     async deleteResetToken(token) {
         const database = await getMongoDb();
         await database.collection("resetTokens").deleteOne({ token: token });
+    },
+
+    /* ---------- orders (Razorpay checkout) ---------- */
+    async createOrder(order) {
+        const database = await getMongoDb();
+        await database.collection("orders").insertOne(order);
+        return order;
+    },
+    async findOrderById(id) {
+        const database = await getMongoDb();
+        return database.collection("orders").findOne({ id: id });
+    },
+    async findOrdersByUser(userId) {
+        const database = await getMongoDb();
+        return database.collection("orders").find({ userId: userId }).sort({ createdAt: -1 }).toArray();
+    },
+    async findOrderByRazorpayOrderId(razorpayOrderId) {
+        const database = await getMongoDb();
+        return database.collection("orders").findOne({ razorpayOrderId: razorpayOrderId });
+    },
+    async updateOrder(id, patch) {
+        const database = await getMongoDb();
+        const result = await database.collection("orders").updateOne({ id: id }, { $set: patch });
+        return result.matchedCount > 0;
     }
 };
 
@@ -96,7 +122,7 @@ const DB_FILE = path.join(DATA_DIR, "users.json");
 function ensureFileDb() {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
     if (!fs.existsSync(DB_FILE)) {
-        fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], resetTokens: [] }, null, 2));
+        fs.writeFileSync(DB_FILE, JSON.stringify({ users: [], resetTokens: [], orders: [] }, null, 2));
     }
 }
 
@@ -106,9 +132,10 @@ function readFileDb() {
         const parsed = JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
         if (!Array.isArray(parsed.users)) parsed.users = [];
         if (!Array.isArray(parsed.resetTokens)) parsed.resetTokens = [];
+        if (!Array.isArray(parsed.orders)) parsed.orders = [];
         return parsed;
     } catch (e) {
-        return { users: [], resetTokens: [] };
+        return { users: [], resetTokens: [], orders: [] };
     }
 }
 
@@ -154,6 +181,33 @@ const fileImpl = {
         const db = readFileDb();
         db.resetTokens = db.resetTokens.filter(function (t) { return t.token !== token; });
         writeFileDb(db);
+    },
+
+    /* ---------- orders (Razorpay checkout) ---------- */
+    async createOrder(order) {
+        const db = readFileDb();
+        db.orders.push(order);
+        writeFileDb(db);
+        return order;
+    },
+    async findOrderById(id) {
+        return readFileDb().orders.find(function (o) { return o.id === id; }) || null;
+    },
+    async findOrdersByUser(userId) {
+        return readFileDb().orders
+            .filter(function (o) { return o.userId === userId; })
+            .sort(function (a, b) { return new Date(b.createdAt) - new Date(a.createdAt); });
+    },
+    async findOrderByRazorpayOrderId(razorpayOrderId) {
+        return readFileDb().orders.find(function (o) { return o.razorpayOrderId === razorpayOrderId; }) || null;
+    },
+    async updateOrder(id, patch) {
+        const db = readFileDb();
+        const order = db.orders.find(function (o) { return o.id === id; });
+        if (!order) return false;
+        Object.assign(order, patch);
+        writeFileDb(db);
+        return true;
     }
 };
 
@@ -168,5 +222,10 @@ module.exports = {
     updateUserPassword: impl.updateUserPassword,
     saveResetToken: impl.saveResetToken,
     findResetToken: impl.findResetToken,
-    deleteResetToken: impl.deleteResetToken
+    deleteResetToken: impl.deleteResetToken,
+    createOrder: impl.createOrder,
+    findOrderById: impl.findOrderById,
+    findOrdersByUser: impl.findOrdersByUser,
+    findOrderByRazorpayOrderId: impl.findOrderByRazorpayOrderId,
+    updateOrder: impl.updateOrder
 };

@@ -14,15 +14,24 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 
-const { PORT } = require("./config");
+const { PORT, RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET } = require("./config");
 const db = require("./db");
 const { getUserFromReq } = require("./middleware");
 const authRouter = require("./auth");
+const { router: paymentRouter, webhookHandler } = require("./payment");
 
 const app = express();
 
 // The existing frontend lives one directory above /server.
 const SITE_ROOT = path.join(__dirname, "..");
+
+/* Razorpay's webhook signature has to be checked against the exact
+   raw request bytes, so this one route needs express.raw() instead
+   of express.json() — and it has to be registered BEFORE the global
+   express.json() below, otherwise that would already have consumed
+   the request body by the time this route runs. Everything else
+   (including the rest of /api/payment) uses normal JSON as usual. */
+app.post("/api/payment/webhook", express.raw({ type: "application/json" }), webhookHandler);
 
 app.use(express.json());
 app.use(cookieParser());
@@ -40,6 +49,21 @@ app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 
 app.use("/api/auth", authRouter);
+
+// Same idea, sized for checkout instead of login: plenty of headroom
+// for a genuine customer retrying a failed/cancelled payment, not
+// enough to be useful for abuse.
+const paymentLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Too many attempts. Please wait a few minutes and try again." }
+});
+app.use("/api/payment/create-order", paymentLimiter);
+app.use("/api/payment/verify", paymentLimiter);
+
+app.use("/api/payment", paymentRouter);
 
 /* ---------- Protected routes ----------
    The shop itself (index.html / "/") is public — anyone can browse
@@ -80,5 +104,6 @@ app.listen(PORT, function () {
     console.log("  Roopkathaa.in is running:");
     console.log("  -> http://localhost:" + PORT);
     console.log("  -> database mode: " + db.mode + (db.mode === "file" ? " (local server/data/users.json)" : " (MongoDB)"));
+    console.log("  -> Razorpay: " + (RAZORPAY_KEY_ID && RAZORPAY_KEY_SECRET ? "configured (" + RAZORPAY_KEY_ID + ")" : "NOT configured — Pay Online will show a friendly error until RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET are set"));
     console.log("");
 });
