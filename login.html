@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login or Create Account | Roopkathaa.in</title>
+    <meta name="description" content="Login or create your Roopkathaa.in account to shop sarees, lehengas, anarkalis and kurtis.">
+
+    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="auth.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Tiro+Devanagari+Hindi:ital@0;1&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="auth-body">
+
+<div class="auth-wrap">
+
+    <div class="auth-brand">
+        <div class="logo"><span class="logo-hindi">रूप</span><span class="logo-latin">Kathaa</span></div>
+        <p class="auth-tagline">Every Outfit Tells Your Story</p>
+    </div>
+
+    <div class="auth-card">
+
+        <div class="auth-tabs" id="authTabs">
+            <button type="button" class="auth-tab active" data-tab="login">Login</button>
+            <button type="button" class="auth-tab" data-tab="register">Create Account</button>
+        </div>
+
+        <!-- LOGIN -->
+        <form class="auth-form active" id="loginForm" data-view="login" novalidate>
+            <p class="auth-alert" id="loginAlert" hidden></p>
+
+            <div class="form-field">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" name="email" autocomplete="email">
+                <span class="field-error" id="loginEmailError"></span>
+            </div>
+
+            <div class="form-field">
+                <label for="loginPassword">Password</label>
+                <div class="password-input">
+                    <input type="password" id="loginPassword" name="password" autocomplete="current-password">
+                    <button type="button" class="toggle-pw" data-target="loginPassword">Show</button>
+                </div>
+                <span class="field-error" id="loginPasswordError"></span>
+            </div>
+
+            <div class="auth-row-between">
+                <label class="remember-check">
+                    <input type="checkbox" id="rememberMe" checked> Remember me
+                </label>
+                <button type="button" class="link-btn" id="forgotPasswordLink">Forgot password?</button>
+            </div>
+
+            <button type="submit" class="btn auth-submit" id="loginSubmitBtn">LOGIN</button>
+
+            <p class="auth-switch">New here? <button type="button" class="link-btn" data-switch="register">Create an account</button></p>
+        </form>
+
+        <!-- REGISTER -->
+        <form class="auth-form" id="registerForm" data-view="register" novalidate hidden>
+            <p class="auth-alert" id="registerAlert" hidden></p>
+
+            <div class="form-field">
+                <label for="regFullName">Full Name</label>
+                <input type="text" id="regFullName" name="fullName" autocomplete="name">
+                <span class="field-error" id="regFullNameError"></span>
+            </div>
+
+            <div class="form-field">
+                <label for="regEmail">Email</label>
+                <input type="email" id="regEmail" name="email" autocomplete="email">
+                <span class="field-error" id="regEmailError"></span>
+            </div>
+
+            <div class="form-field">
+                <label for="regMobile">Mobile Number</label>
+                <input type="tel" id="regMobile" name="mobile" autocomplete="tel" maxlength="10" placeholder="10-digit mobile number">
+                <span class="field-error" id="regMobileError"></span>
+            </div>
+
+            <div class="form-field">
+                <label for="regPassword">Password</label>
+                <div class="password-input">
+                    <input type="password" id="regPassword" name="password" autocomplete="new-password">
+                    <button type="button" class="toggle-pw" data-target="regPassword">Show</button>
+                </div>
+                <span class="field-hint">At least 8 characters, with a letter and a number</span>
+                <span class="field-error" id="regPasswordError"></span>
+            </div>
+
+            <div class="form-field">
+                <label for="regConfirmPassword">Confirm Password</label>
+                <div class="password-input">
+                    <input type="password" id="regConfirmPassword" name="confirmPassword" autocomplete="new-password">
+                    <button type="button" class="toggle-pw" data-target="regConfirmPassword">Show</button>
+                </div>
+                <span class="field-error" id="regConfirmPasswordError"></span>
+            </div>
+
+            <button type="submit" class="btn auth-submit" id="registerSubmitBtn">CREATE ACCOUNT</button>
+
+            <p class="auth-switch">Already have an account? <button type="button" class="link-btn" data-switch="login">Login</button></p>
+        </form>
+
+        <!-- FORGOT PASSWORD -->
+        <form class="auth-form" id="forgotForm" data-view="forgot" novalidate hidden>
+            <p class="auth-alert" id="forgotAlert" hidden></p>
+            <p class="auth-helptext">Enter your registered email. We'll generate a password reset link for you.</p>
+
+            <div class="form-field">
+                <label for="forgotEmail">Email</label>
+                <input type="email" id="forgotEmail" name="email" autocomplete="email">
+                <span class="field-error" id="forgotEmailError"></span>
+            </div>
+
+            <div class="reset-link-box" id="resetLinkBox" hidden>
+                <p>Email sending isn't set up yet, so here's your reset link for now:</p>
+                <a href="#" id="resetLinkAnchor" target="_blank" rel="noopener"></a>
+            </div>
+
+            <button type="submit" class="btn auth-submit" id="forgotSubmitBtn">SEND RESET LINK</button>
+
+            <p class="auth-switch"><button type="button" class="link-btn" data-switch="login">Back to Login</button></p>
+        </form>
+
+    </div>
+</div>
+
+<script src="auth.js"></script>
+</body>
+</html>
