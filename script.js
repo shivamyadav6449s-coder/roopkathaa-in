@@ -826,6 +826,23 @@
     });
 
 
+    /* ---------- HERO CATEGORY PILLS ----------
+       The four invisible links laid over the hero banner photo
+       (Anarkali / Kurti / Lehenga / Saree) jump to New Arrivals AND
+       apply that category's filter chip, so they're genuinely
+       working buttons and not just a scroll. */
+
+    var heroPillLinks = document.querySelectorAll("[data-hero-filter]");
+
+    heroPillLinks.forEach(function (link) {
+        link.addEventListener("click", function () {
+            var wanted = link.getAttribute("data-hero-filter");
+            var matchingChip = document.querySelector('.chip-filter[data-filter="' + wanted + '"]');
+            if (matchingChip) matchingChip.click();
+        });
+    });
+
+
     /* ---------- BACK TO TOP ---------- */
 
     var backToTop = document.getElementById("backToTop");
