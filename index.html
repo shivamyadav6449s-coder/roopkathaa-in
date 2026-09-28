@@ -136,6 +136,26 @@
         <button class="outline-btn cart-continue-btn" id="continueShoppingBtn">CONTINUE SHOPPING</button>
     </div>
 </div>
+
+
+<!-- WISHLIST DRAWER — reuses the exact cart-drawer markup/CSS pattern
+     above (same classes), just a new id + its own content, so no new
+     styling was needed. -->
+<div class="cart-drawer" id="wishlistDrawer">
+    <div class="cart-header">
+        <h3>Your Wishlist (<span id="wishlistItemCount">0</span>)</h3>
+        <button class="close-panel" id="wishlistClose" aria-label="Close wishlist">×</button>
+    </div>
+
+    <div class="cart-items" id="wishlistItems">
+        <p class="cart-empty" id="wishlistEmptyMsg">Your wishlist is empty. Tap the ♡ on any product to save it here.</p>
+    </div>
+
+    <div class="cart-footer">
+        <button class="outline-btn cart-continue-btn" id="wishlistContinueBtn">CONTINUE SHOPPING</button>
+    </div>
+</div>
+<div class="overlay-backdrop" id="wishlistBackdrop"></div>
 <div class="overlay-backdrop" id="cartBackdrop"></div>
 
 
@@ -181,6 +201,14 @@
                         <span class="payment-option-text">
                             <span class="payment-option-title">UPI — GPay / PhonePe / Paytm</span>
                             <span class="payment-option-desc">Pay now using any UPI app</span>
+                        </span>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payMethod" value="razorpay">
+                        <span class="payment-option-icon">💳</span>
+                        <span class="payment-option-text">
+                            <span class="payment-option-title">Pay Online — Cards / UPI / Wallets</span>
+                            <span class="payment-option-desc">Secure checkout powered by Razorpay</span>
                         </span>
                     </label>
                 </div>
@@ -934,6 +962,11 @@
 <div class="toast" id="toast"></div>
 
 
+<!-- Official Razorpay Checkout SDK — only used when "Pay Online" is
+     selected at checkout (see script.js). Standard, required way to
+     open Razorpay's payment widget; nothing else on the site depends
+     on it. -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

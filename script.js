@@ -122,17 +122,25 @@
         closePanel(searchOverlay, null);
     });
 
-    /* Filters the New Arrivals grid by product name/category text —
-       same show/hide mechanism the category chips already use, so it
-       plays nicely with them (a live search resets the chips back to
-       "All" since a text search isn't tied to one category). */
+    /* Filters product cards by name/category text — same show/hide
+       mechanism the category chips already use, so it plays nicely
+       with them (a live search resets the chips back to "All" since
+       a text search isn't tied to one category).
+       Covers BOTH the New Arrivals grid and the Best Sellers grid
+       (bestSellersGrid, declared further below) — searching only New
+       Arrivals used to make Best-Sellers-only products (e.g. "Royal
+       Blue Designer Lehenga") show "No results found" even though
+       they're right there on the page. */
     function runSiteSearch(rawQuery) {
         var query = String(rawQuery || "").trim().toLowerCase();
         if (!newArrivalsGrid) return;
 
-        var cards = newArrivalsGrid.querySelectorAll(".product");
+        var newArrivalsCards = newArrivalsGrid.querySelectorAll(".product");
+        var bestSellerCards = bestSellersGrid ? bestSellersGrid.querySelectorAll(".product") : [];
+
         if (!query) {
-            cards.forEach(function (card) { card.classList.remove("hidden-by-filter"); });
+            newArrivalsCards.forEach(function (card) { card.classList.remove("hidden-by-filter"); });
+            bestSellerCards.forEach(function (card) { card.classList.remove("hidden-by-filter"); });
             if (noResultsMsg) noResultsMsg.hidden = true;
             return;
         }
@@ -142,7 +150,7 @@
         if (allChip) allChip.classList.add("active");
 
         var anyVisible = false;
-        cards.forEach(function (card) {
+        function matchCard(card) {
             var haystack = (
                 (card.getAttribute("data-name") || "") + " " +
                 (card.getAttribute("data-category") || "")
@@ -150,7 +158,9 @@
             var show = haystack.indexOf(query) !== -1;
             card.classList.toggle("hidden-by-filter", !show);
             if (show) anyVisible = true;
-        });
+        }
+        newArrivalsCards.forEach(matchCard);
+        bestSellerCards.forEach(matchCard);
 
         if (noResultsMsg) noResultsMsg.hidden = anyVisible;
     }
@@ -324,6 +334,7 @@
     var checkoutDoneBtn = document.getElementById("checkoutDoneBtn");
     var successOrderId = document.getElementById("successOrderId");
     var successNote = document.getElementById("successNote");
+    var placeOrderBtn = document.getElementById("placeOrderBtn");
 
     if (upiIdText) upiIdText.textContent = STORE_UPI_ID;
 
@@ -476,43 +487,12 @@
         localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
     }
 
-    if (checkoutForm) checkoutForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        if (cart.length === 0) return;
-
-        var t = checkoutTotals();
-        var payMethod = currentPayMethod();
-        var orderId = "RK" + Date.now().toString().slice(-8);
-
-        var order = {
-            id: orderId,
-            items: cart.map(function (item) {
-                return { name: item.name, size: item.size, qty: item.qty, price: item.price };
-            }),
-            subtotal: t.subtotal,
-            shipping: t.shipping,
-            total: t.total,
-            payMethod: payMethod,
-            name: document.getElementById("ckName").value.trim(),
-            phone: document.getElementById("ckPhone").value.trim(),
-            address: document.getElementById("ckAddress").value.trim(),
-            city: document.getElementById("ckCity").value.trim(),
-            state: document.getElementById("ckState").value.trim(),
-            pincode: document.getElementById("ckPincode").value.trim(),
-            placedAt: new Date().toISOString()
-        };
-
-        saveOrder(order);
-
-        var waMessage = buildWhatsAppMessage(order);
-        var waUrl = "https://wa.me/" + STORE_WHATSAPP + "?text=" + encodeURIComponent(waMessage);
-        window.open(waUrl, "_blank");
-
-        if (payMethod === "upi") {
-            successNote.textContent = "We've opened WhatsApp with your order details — please tap send there so our team can confirm your UPI payment.";
-        } else {
-            successNote.textContent = "We've opened WhatsApp with your order details — please tap send there so our team can confirm your Cash on Delivery order.";
-        }
+    /* Shared by both the existing COD/UPI flow below and the new
+       Razorpay flow — swaps the checkout modal from the form to the
+       success view exactly as it already did, just no longer
+       duplicated in two places. */
+    function showOrderSuccess(orderId, noteText) {
+        successNote.textContent = noteText;
         successOrderId.textContent = orderId;
 
         cart = [];
@@ -528,6 +508,175 @@
         document.querySelectorAll(".payment-option").forEach(function (opt, i) {
             opt.classList.toggle("active", i === 0);
         });
+    }
+
+    function setPlaceOrderLoading(isLoading, label) {
+        if (!placeOrderBtn) return;
+        placeOrderBtn.disabled = isLoading;
+        placeOrderBtn.textContent = label;
+    }
+
+    function readShippingFields() {
+        return {
+            name: document.getElementById("ckName").value.trim(),
+            phone: document.getElementById("ckPhone").value.trim(),
+            address: document.getElementById("ckAddress").value.trim(),
+            city: document.getElementById("ckCity").value.trim(),
+            state: document.getElementById("ckState").value.trim(),
+            pincode: document.getElementById("ckPincode").value.trim()
+        };
+    }
+
+    /* ---------- Razorpay (Pay Online) ----------
+       A third payment path alongside the existing Cash on Delivery
+       and UPI ones above — those two are completely untouched. This
+       one actually charges a card/UPI/wallet through Razorpay's
+       Checkout widget, with the amount always coming from the
+       server (server/products.js + server/payment.js), never from
+       this cart. */
+    function startRazorpayCheckout() {
+        if (typeof Razorpay === "undefined") {
+            showToast("Payment is temporarily unavailable. Please try Cash on Delivery or UPI.");
+            return;
+        }
+
+        var shipping = readShippingFields();
+        setPlaceOrderLoading(true, "STARTING PAYMENT…");
+
+        fetch("/api/payment/create-order", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+                items: cart.map(function (item) {
+                    return { name: item.name, size: item.size, qty: item.qty };
+                }),
+                shipping: shipping
+            })
+        })
+            .then(function (res) {
+                return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+            })
+            .then(function (result) {
+                if (!result.ok) {
+                    showToast((result.data && result.data.error) || "Could not start payment. Please try again.");
+                    setPlaceOrderLoading(false, "PLACE ORDER");
+                    return;
+                }
+
+                var data = result.data;
+                var rzp = new Razorpay({
+                    key: data.keyId,
+                    amount: data.amount,
+                    currency: data.currency,
+                    name: "Roopkathaa.in",
+                    description: "Order " + data.localOrderId,
+                    order_id: data.razorpayOrderId,
+                    prefill: {
+                        name: shipping.name,
+                        contact: shipping.phone
+                    },
+                    notes: { localOrderId: data.localOrderId },
+                    theme: { color: "#3d1512" },
+                    handler: function (response) {
+                        setPlaceOrderLoading(true, "CONFIRMING PAYMENT…");
+                        fetch("/api/payment/verify", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            credentials: "include",
+                            body: JSON.stringify({
+                                localOrderId: data.localOrderId,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        })
+                            .then(function (res) {
+                                return res.json().then(function (body) { return { ok: res.ok, body: body }; });
+                            })
+                            .then(function (verifyResult) {
+                                setPlaceOrderLoading(false, "PLACE ORDER");
+                                if (verifyResult.ok && verifyResult.body && verifyResult.body.ok) {
+                                    showOrderSuccess(
+                                        data.localOrderId,
+                                        "Payment successful — your order is confirmed! We'll start preparing it right away."
+                                    );
+                                } else {
+                                    showToast((verifyResult.body && verifyResult.body.error) || "Payment verification failed. Please contact us if money was deducted.");
+                                }
+                            })
+                            .catch(function () {
+                                setPlaceOrderLoading(false, "PLACE ORDER");
+                                showToast("Could not confirm payment. Please contact us if money was deducted.");
+                            });
+                    },
+                    modal: {
+                        ondismiss: function () {
+                            setPlaceOrderLoading(false, "PLACE ORDER");
+                            showToast("Payment cancelled.");
+                        }
+                    }
+                });
+
+                rzp.on("payment.failed", function (resp) {
+                    setPlaceOrderLoading(false, "PLACE ORDER");
+                    var reason = resp && resp.error && resp.error.description;
+                    showToast("Payment failed" + (reason ? ": " + reason : ". Please try again."));
+                });
+
+                setPlaceOrderLoading(false, "PLACE ORDER");
+                rzp.open();
+            })
+            .catch(function () {
+                setPlaceOrderLoading(false, "PLACE ORDER");
+                showToast("Could not start payment. Please check your connection and try again.");
+            });
+    }
+
+    if (checkoutForm) checkoutForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (cart.length === 0) return;
+
+        var payMethod = currentPayMethod();
+
+        if (payMethod === "razorpay") {
+            startRazorpayCheckout();
+            return;
+        }
+
+        // ---- Cash on Delivery / UPI (unchanged) ----
+        var t = checkoutTotals();
+        var orderId = "RK" + Date.now().toString().slice(-8);
+        var shipping = readShippingFields();
+
+        var order = {
+            id: orderId,
+            items: cart.map(function (item) {
+                return { name: item.name, size: item.size, qty: item.qty, price: item.price };
+            }),
+            subtotal: t.subtotal,
+            shipping: t.shipping,
+            total: t.total,
+            payMethod: payMethod,
+            name: shipping.name,
+            phone: shipping.phone,
+            address: shipping.address,
+            city: shipping.city,
+            state: shipping.state,
+            pincode: shipping.pincode,
+            placedAt: new Date().toISOString()
+        };
+
+        saveOrder(order);
+
+        var waMessage = buildWhatsAppMessage(order);
+        var waUrl = "https://wa.me/" + STORE_WHATSAPP + "?text=" + encodeURIComponent(waMessage);
+        window.open(waUrl, "_blank");
+
+        var note = payMethod === "upi"
+            ? "We've opened WhatsApp with your order details — please tap send there so our team can confirm your UPI payment."
+            : "We've opened WhatsApp with your order details — please tap send there so our team can confirm your Cash on Delivery order.";
+        showOrderSuccess(orderId, note);
     });
 
     if (checkoutDoneBtn) checkoutDoneBtn.addEventListener("click", function () {
@@ -540,6 +689,14 @@
     var WISHLIST_KEY = "roopkathaa_wishlist";
     var wishlist = safeParse(localStorage.getItem(WISHLIST_KEY), []);
     var wishlistCountBadge = document.getElementById("wishlistCount");
+
+    var wishlistToggle = document.getElementById("wishlistToggle");
+    var wishlistDrawer = document.getElementById("wishlistDrawer");
+    var wishlistBackdrop = document.getElementById("wishlistBackdrop");
+    var wishlistClose = document.getElementById("wishlistClose");
+    var wishlistContinueBtn = document.getElementById("wishlistContinueBtn");
+    var wishlistItemsEl = document.getElementById("wishlistItems");
+    var wishlistItemCountEl = document.getElementById("wishlistItemCount");
 
     function saveWishlist() {
         localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlist));
@@ -560,6 +717,78 @@
         });
     }
 
+    /* Looks a wishlisted name up against the products actually on the
+       page, rather than building a CSS selector out of it (product
+       names can contain punctuation like an em dash for color
+       variants — this avoids any selector-escaping issues). */
+    function findProductCardByName(name) {
+        var cards = document.querySelectorAll(".product");
+        for (var i = 0; i < cards.length; i++) {
+            if (cards[i].getAttribute("data-name") === name) return cards[i];
+        }
+        return null;
+    }
+
+    function removeFromWishlist(name) {
+        var idx = wishlist.indexOf(name);
+        if (idx !== -1) wishlist.splice(idx, 1);
+        saveWishlist();
+        refreshWishlistBadge();
+        syncWishButtons();
+        renderWishlist();
+    }
+
+    /* Renders the wishlist drawer's contents — mirrors renderCart()
+       below. Pulls each item's current image/price live from its
+       product card (the wishlist itself only stores the name), so it
+       always reflects the live catalog. */
+    function renderWishlist() {
+        if (wishlistItemCountEl) wishlistItemCountEl.textContent = wishlist.length;
+        if (!wishlistItemsEl) return;
+        wishlistItemsEl.innerHTML = "";
+
+        if (wishlist.length === 0) {
+            var empty = document.createElement("p");
+            empty.className = "cart-empty";
+            empty.id = "wishlistEmptyMsg";
+            empty.textContent = "Your wishlist is empty. Tap the ♡ on any product to save it here.";
+            wishlistItemsEl.appendChild(empty);
+            return;
+        }
+
+        wishlist.forEach(function (name) {
+            var card = findProductCardByName(name);
+            var image = card ? card.getAttribute("data-image") : "";
+            var price = card ? parseFloat(card.getAttribute("data-price")) : null;
+
+            var row = document.createElement("div");
+            row.className = "cart-item";
+            row.innerHTML =
+                '<img src="' + image + '" alt="' + name + '">' +
+                '<div class="cart-item-info">' +
+                    '<h4>' + name + '</h4>' +
+                    (price != null && !isNaN(price) ? '<p>' + money(price) + '</p>' : '<p>No longer available</p>') +
+                    '<div class="cart-item-bottom">' +
+                        '<button class="cart-item-remove wish-move-btn"' + (card ? '' : ' disabled') + '>ADD TO BAG</button>' +
+                        '<button class="cart-item-remove wish-remove-btn">REMOVE</button>' +
+                    '</div>' +
+                '</div>';
+
+            var moveBtn = row.querySelector(".wish-move-btn");
+            var removeBtn = row.querySelector(".wish-remove-btn");
+
+            if (moveBtn) moveBtn.addEventListener("click", function () {
+                if (!card) return;
+                addToCart({ name: name, price: price, image: image }, "M", 1);
+            });
+            if (removeBtn) removeBtn.addEventListener("click", function () {
+                removeFromWishlist(name);
+            });
+
+            wishlistItemsEl.appendChild(row);
+        });
+    }
+
     document.querySelectorAll(".wish-btn").forEach(function (btn) {
         btn.addEventListener("click", function () {
             var card = btn.closest(".product");
@@ -576,11 +805,25 @@
             saveWishlist();
             refreshWishlistBadge();
             syncWishButtons();
+            renderWishlist();
         });
     });
 
+    if (wishlistToggle) wishlistToggle.addEventListener("click", function () {
+        renderWishlist();
+        openPanel(wishlistDrawer, wishlistBackdrop);
+    });
+    if (wishlistClose) wishlistClose.addEventListener("click", function () {
+        closePanel(wishlistDrawer, wishlistBackdrop);
+    });
+    if (wishlistContinueBtn) wishlistContinueBtn.addEventListener("click", function () {
+        closePanel(wishlistDrawer, wishlistBackdrop);
+    });
+    if (wishlistBackdrop) wishlistBackdrop.addEventListener("click", closeAllPanels);
+
     refreshWishlistBadge();
     syncWishButtons();
+    renderWishlist();
 
 
     /* ---------- COLOR SWATCHES ---------- */
@@ -846,6 +1089,7 @@
 
     var filterChips = document.querySelectorAll(".chip-filter");
     var newArrivalsGrid = document.getElementById("newArrivalsGrid");
+    var bestSellersGrid = document.getElementById("bestSellersGrid"); // used by runSiteSearch() above (hoisted var)
 
     filterChips.forEach(function (chip) {
         chip.addEventListener("click", function () {
