@@ -661,6 +661,42 @@
     var currentQVFront = null;
     var currentQVBack = null;
 
+    /* ---------- QUICK VIEW IMAGE ZOOM ----------
+       Cursor-following zoom on the Quick View main photo — the mouse
+       position decides which part of the image is magnified, like a
+       premium fashion e-commerce product page. Purely additive: it
+       only ever touches #qvImage's own transform/transform-origin, so
+       it never interferes with the existing FRONT/BACK crossfade,
+       swipe, size selection or add-to-bag logic below. Skipped
+       entirely on touch/no-hover devices, so mobile keeps the normal,
+       non-zoomed image exactly as before. */
+    var qvZoomEnabled = !!(window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches);
+    var QV_ZOOM_SCALE = 1.8;
+
+    function resetQVZoom() {
+        if (!qvImage) return;
+        qvImage.style.transform = "";
+        qvImage.style.transformOrigin = "center center";
+    }
+
+    if (qvImage && qvZoomEnabled) {
+        qvImage.addEventListener("mouseenter", function () {
+            qvImage.style.transform = "scale(" + QV_ZOOM_SCALE + ")";
+        });
+        qvImage.addEventListener("mousemove", function (e) {
+            var rect = qvImage.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            var x = ((e.clientX - rect.left) / rect.width) * 100;
+            var y = ((e.clientY - rect.top) / rect.height) * 100;
+            x = Math.max(0, Math.min(100, x));
+            y = Math.max(0, Math.min(100, y));
+            qvImage.style.transformOrigin = x + "% " + y + "%";
+        });
+        qvImage.addEventListener("mouseleave", function () {
+            resetQVZoom();
+        });
+    }
+
     /* Swaps the big Quick View image between the product's existing
        FRONT and BACK photos (only — never generates or fetches any
        other image). Used by the FRONT/BACK buttons, arrow keys and
@@ -669,6 +705,7 @@
         var src = which === "back" ? currentQVBack : currentQVFront;
         if (!qvImage || !src) return;
 
+        resetQVZoom();
         qvImage.classList.add("qv-image-fade");
         setTimeout(function () {
             qvImage.src = src;
@@ -695,7 +732,7 @@
         currentQVQty = 1;
         currentQVSize = "M";
 
-        if (qvImage) { qvImage.src = currentQVFront || image; qvImage.alt = name; qvImage.classList.remove("qv-image-fade"); }
+        if (qvImage) { resetQVZoom(); qvImage.src = currentQVFront || image; qvImage.alt = name; qvImage.classList.remove("qv-image-fade"); }
         if (qvName) qvName.textContent = name;
         if (qvQty) qvQty.textContent = currentQVQty;
 

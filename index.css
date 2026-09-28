@@ -459,8 +459,13 @@ nav a:hover {
     transition: .5s;
 }
 
-.product:hover img {
-    transform: scale(1.04);
+/* Premium hover zoom on product-card photos. Scoped to devices that
+   actually have real hover + a precise pointer (mouse/trackpad) so
+   touchscreens never get a "stuck" zoom after a tap. */
+@media (hover: hover) and (pointer: fine) {
+    .product:hover img {
+        transform: scale(1.08);
+    }
 }
 
 .product-image span.tag {
@@ -689,6 +694,13 @@ nav a:hover {
 .gallery img {
     height: 300px;
     object-fit: cover;
+    transition: transform .4s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .gallery-item:hover img {
+        transform: scale(1.08);
+    }
 }
 
 
@@ -1880,12 +1892,32 @@ footer {
     flex-direction: column;
 }
 
-.quickview-image img {
+/* Dedicated, clipped frame around just the photo (separate from the
+   FRONT/BACK button row below it), so the cursor-zoomed image can
+   never visually or functionally overlap those buttons — it's
+   clipped at the frame's own edge, not just the modal's outer edge. */
+.qv-image-frame {
+    position: relative;
     flex: 1;
     min-height: 0;
+    overflow: hidden;
+}
+
+.quickview-image img {
     width: 100%;
+    height: 100%;
     object-fit: cover;
-    transition: opacity .2s ease;
+    transition: opacity .2s ease, transform .3s ease;
+    transform-origin: center center;
+}
+
+/* Cursor-following zoom on the Quick View main photo — desktop/trackpad
+   only (see script.js). The frame's overflow:hidden above keeps the
+   magnified image clipped to the gallery area. */
+@media (hover: hover) and (pointer: fine) {
+    .quickview-image img {
+        cursor: zoom-in;
+    }
 }
 
 /* Anarkali FRONT/BACK viewer — swaps between the product's two
