@@ -37,9 +37,9 @@
         <span></span><span></span><span></span>
     </button>
 
-    <div class="logo">
-        <span class="logo-hindi">रूप</span><span class="logo-latin">Kathaa</span>
-    </div>
+    <a href="/" class="logo" aria-label="Roopkathaa.in — home">
+        <img src="images/logo.png" alt="Roopkathaa.in" class="brand-logo-img">
+    </a>
 
     <nav>
         <a href="#">Home</a>
@@ -559,6 +559,8 @@
 
     </div>
 
+    <p class="no-results-msg" id="noResultsMsg" hidden>No products matched your search. Try a different word, or clear the search to see everything again.</p>
+
     <div class="center">
         <a href="#" class="outline-btn">VIEW ALL NEW ARRIVALS</a>
     </div>
@@ -894,7 +896,10 @@
             <p class="qv-desc">Handpicked fabric, finished with care. Ships within
             2–4 business days, easy 7-day exchange.</p>
 
-            <p class="qv-label">SELECT SIZE</p>
+            <div class="qv-label-row">
+                <p class="qv-label">SELECT SIZE</p>
+                <button type="button" class="size-chart-link" id="sizeChartBtn">SIZE CHART</button>
+            </div>
             <div class="size-options">
                 <button class="size-btn">S</button>
                 <button class="size-btn active">M</button>
@@ -914,6 +919,17 @@
     </div>
 </div>
 <div class="overlay-backdrop" id="quickviewBackdrop"></div>
+
+
+<!-- SIZE CHART MODAL — same chart image for every category (Anarkali,
+     Short Kurti, Lehnga, Saree); opened from the Quick View modal above. -->
+<div class="size-chart-modal" id="sizeChartModal">
+    <button class="close-panel" id="sizeChartClose" aria-label="Close size chart">×</button>
+    <div class="size-chart-body">
+        <img id="sizeChartImage" src="images/size-chart.png" alt="Roopkathaa.in size chart — top and trouser measurements in inches">
+    </div>
+</div>
+<div class="overlay-backdrop" id="sizeChartBackdrop"></div>
 
 
 <!-- TOAST -->

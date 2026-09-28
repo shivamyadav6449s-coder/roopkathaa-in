@@ -73,8 +73,22 @@ button {
     font-size: 25px;
     letter-spacing: 1px;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 3px;
+}
+
+/* Boss-provided logo image (navbar + login/reset-password pages).
+   Global "img { width:100%; }" is overridden here on purpose so the
+   logo sizes off its own height, keeps its real aspect ratio, and
+   never stretches or makes the navbar taller. */
+.brand-logo-img {
+    width: auto;
+    height: 40px;
+    display: block;
+}
+
+.auth-brand .logo .brand-logo-img {
+    height: 54px;
 }
 
 .logo-hindi {
@@ -855,6 +869,10 @@ footer {
         font-size: 19px;
     }
 
+    .brand-logo-img {
+        height: 30px;
+    }
+
     .nav-icons {
         font-size: 16px;
         gap: 8px;
@@ -1410,6 +1428,13 @@ footer {
 
 .product.hidden-by-filter {
     display: none;
+}
+
+.no-results-msg {
+    text-align: center;
+    color: #6b4a42;
+    font-size: 14px;
+    padding: 30px 20px;
 }
 
 
@@ -1975,6 +2000,96 @@ footer {
 .qv-add-btn:hover {
     background: #e0776a;
     border-color: #e0776a;
+}
+
+
+/* ============================= */
+/* SIZE CHART MODAL                */
+/* Same chart image reused for every category — opened from the      */
+/* "SIZE CHART" link inside Quick View. object-fit:contain keeps the */
+/* full image visible, uncropped, at its own aspect ratio.           */
+/* ============================= */
+
+.qv-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.qv-label-row .qv-label {
+    margin-bottom: 0;
+}
+
+.size-chart-link {
+    background: none;
+    border: none;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: #3d1512;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    margin-bottom: 10px;
+}
+
+.size-chart-link:hover {
+    color: #e0776a;
+}
+
+.size-chart-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(.95);
+    width: 480px;
+    max-width: 92vw;
+    max-height: 90vh;
+    background: #fdf6f2;
+    z-index: 230;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: opacity .35s ease, transform .35s ease, visibility .35s ease;
+}
+
+.size-chart-modal.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.size-chart-modal .close-panel {
+    align-self: flex-end;
+}
+
+.size-chart-body {
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+}
+
+.size-chart-body img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 80vh;
+    object-fit: contain;
+    display: block;
+}
+
+@media (max-width: 600px) {
+    .size-chart-modal {
+        width: 92vw;
+        padding: 16px;
+    }
+
+    .size-chart-body img {
+        max-height: 70vh;
+    }
 }
 
 
