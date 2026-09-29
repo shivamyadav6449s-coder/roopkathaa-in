@@ -1124,78 +1124,154 @@
     if (quickviewBackdrop) quickviewBackdrop.addEventListener("click", closeAllPanels);
 
 
-    /* ---------- PHOTO ZOOM POPUP ----------
-       Clicking a product photo directly in the New Arrivals / Best
-       Sellers grid opens a lightweight popup with just the enlarged
-       photo and prev/next arrows to flip between the product's
-       front/back photos — deliberately separate and smaller than
-       Quick View (no size selector, quantity or add-to-bag here). */
+    /* ---------- PHOTO POPUP ----------
+       Clicking any product photo opens this popup. The product's
+       front and back photos sit side by side on a sliding track:
+       arrows / swipe / keyboard / dots move from front to back.
+       Size + ADD TO BAG live here too (Quick View button is removed). */
 
     var photoZoomModal = document.getElementById("photoZoomModal");
     var photoZoomBackdrop = document.getElementById("photoZoomBackdrop");
     var photoZoomClose = document.getElementById("photoZoomClose");
-    var photoZoomImage = document.getElementById("photoZoomImage");
+    var photoZoomTrack = document.getElementById("photoZoomTrack");
+    var photoZoomViewport = document.getElementById("photoZoomViewport");
+    var photoZoomDots = document.getElementById("photoZoomDots");
     var photoZoomPrev = document.getElementById("photoZoomPrev");
     var photoZoomNext = document.getElementById("photoZoomNext");
+    var pzName = document.getElementById("pzName");
+    var pzPrice = document.getElementById("pzPrice");
+    var pzAddBtn = document.getElementById("pzAddBtn");
+    var pzSizeChartBtn = document.getElementById("pzSizeChartBtn");
+    var pzSizeBtns = document.querySelectorAll(".pz-size-btn");
 
-    var photoZoomImages = [];
+    var photoZoomCount = 0;
     var photoZoomIndex = 0;
+    var photoZoomCard = null;
+    var photoZoomSize = "M";
 
     function showPhotoZoomImage() {
-        if (!photoZoomImage || !photoZoomImages.length) return;
-        photoZoomImage.src = photoZoomImages[photoZoomIndex];
-        var multi = photoZoomImages.length > 1;
-        if (photoZoomPrev) photoZoomPrev.hidden = !multi;
-        if (photoZoomNext) photoZoomNext.hidden = !multi;
+        if (!photoZoomTrack) return;
+        photoZoomTrack.style.transform = "translateX(" + (-photoZoomIndex * 100) + "%)";
+        if (photoZoomDots) {
+            photoZoomDots.querySelectorAll(".pz-dot").forEach(function (d, i) {
+                d.classList.toggle("active", i === photoZoomIndex);
+            });
+        }
     }
 
     function openPhotoZoom(card, startSrc) {
-        var frontEl = card.querySelector(".img-front") || card.querySelector(".product-image img");
-        var backEl = card.querySelector(".img-back");
-        photoZoomImages = [];
-        if (frontEl) photoZoomImages.push(frontEl.src);
-        if (backEl) photoZoomImages.push(backEl.src);
-        if (!photoZoomImages.length) return;
+        var front = card.querySelector(".img-front") || card.querySelector(".product-image img");
+        var back = card.querySelector(".img-back");
+        var srcs = [];
+        if (front) srcs.push(front.currentSrc || front.src);
+        if (back) srcs.push(back.currentSrc || back.src);
+        if (!srcs.length || !photoZoomTrack) return;
 
-        var startIdx = startSrc ? photoZoomImages.indexOf(startSrc) : -1;
-        photoZoomIndex = startIdx !== -1 ? startIdx : 0;
-        if (photoZoomImage) photoZoomImage.alt = productDisplayName(card);
+        photoZoomCard = card;
+        photoZoomCount = srcs.length;
+        photoZoomIndex = 0;
+        var name = productDisplayName(card);
+
+        photoZoomTrack.innerHTML = "";
+        photoZoomDots.innerHTML = "";
+        srcs.forEach(function (src, i) {
+            var slide = document.createElement("div");
+            slide.className = "pz-slide";
+            var img = document.createElement("img");
+            img.src = src;
+            img.alt = name + (srcs.length > 1 ? (i === 0 ? " - front" : " - back") : "");
+            img.draggable = false;
+            slide.appendChild(img);
+            photoZoomTrack.appendChild(slide);
+
+            var dot = document.createElement("button");
+            dot.type = "button";
+            dot.className = "pz-dot";
+            dot.setAttribute("aria-label", i === 0 ? "Front photo" : "Back photo");
+            dot.addEventListener("click", function () { photoZoomIndex = i; showPhotoZoomImage(); });
+            photoZoomDots.appendChild(dot);
+        });
+
+        var multi = srcs.length > 1;
+        photoZoomPrev.hidden = !multi;
+        photoZoomNext.hidden = !multi;
+        photoZoomDots.hidden = !multi;
+
+        pzName.textContent = name;
+        var price = parseFloat(card.getAttribute("data-price"));
+        var oldPrice = parseFloat(card.getAttribute("data-old-price"));
+        var html = '<span class="pz-now">' + money(price) + '</span>';
+        if (oldPrice && oldPrice > price) {
+            html += ' <span class="old-price">' + money(oldPrice) + '</span>';
+            html += ' <span class="discount">' + Math.round((1 - price / oldPrice) * 100) + '% OFF</span>';
+        }
+        pzPrice.innerHTML = html;
+
+        photoZoomSize = "M";
+        pzSizeBtns.forEach(function (b) { b.classList.toggle("active", b.getAttribute("data-size") === "M"); });
+
         showPhotoZoomImage();
         openPanel(photoZoomModal, photoZoomBackdrop);
     }
 
-    /* Clicking a product photo now flips it to show the back photo in
-       place (hover already zooms the current photo — see index.css).
-       Only wired up for cards that actually have a back photo. */
+    // Click on any product photo (not the wishlist heart) opens the popup.
     document.querySelectorAll(".product .product-image").forEach(function (imageBox) {
-        var backImg = imageBox.querySelector(".img-back");
-        if (!backImg) return;
-        imageBox.querySelectorAll("img").forEach(function (img) {
-            img.addEventListener("click", function () {
-                imageBox.classList.toggle("show-back");
-            });
+        imageBox.addEventListener("click", function (e) {
+            if (e.target.closest(".wish-btn")) return;
+            var card = imageBox.closest(".product");
+            if (card) openPhotoZoom(card);
         });
     });
 
-    if (photoZoomPrev) photoZoomPrev.addEventListener("click", function () {
-        if (!photoZoomImages.length) return;
-        photoZoomIndex = (photoZoomIndex - 1 + photoZoomImages.length) % photoZoomImages.length;
+    function photoZoomStep(dir) {
+        if (photoZoomCount < 2) return;
+        photoZoomIndex = (photoZoomIndex + dir + photoZoomCount) % photoZoomCount;
         showPhotoZoomImage();
-    });
-    if (photoZoomNext) photoZoomNext.addEventListener("click", function () {
-        if (!photoZoomImages.length) return;
-        photoZoomIndex = (photoZoomIndex + 1) % photoZoomImages.length;
-        showPhotoZoomImage();
-    });
+    }
+
+    if (photoZoomPrev) photoZoomPrev.addEventListener("click", function () { photoZoomStep(-1); });
+    if (photoZoomNext) photoZoomNext.addEventListener("click", function () { photoZoomStep(1); });
     if (photoZoomClose) photoZoomClose.addEventListener("click", function () {
         closePanel(photoZoomModal, photoZoomBackdrop);
     });
     if (photoZoomBackdrop) photoZoomBackdrop.addEventListener("click", closeAllPanels);
 
+    // Swipe left/right on touch screens.
+    var pzTouchX = null;
+    if (photoZoomViewport) {
+        photoZoomViewport.addEventListener("touchstart", function (e) {
+            pzTouchX = e.touches[0].clientX;
+        }, { passive: true });
+        photoZoomViewport.addEventListener("touchend", function (e) {
+            if (pzTouchX === null) return;
+            var dx = e.changedTouches[0].clientX - pzTouchX;
+            pzTouchX = null;
+            if (Math.abs(dx) > 40) photoZoomStep(dx < 0 ? 1 : -1);
+        }, { passive: true });
+    }
+
     document.addEventListener("keydown", function (e) {
         if (!photoZoomModal || !photoZoomModal.classList.contains("active")) return;
-        if (e.key === "ArrowLeft" && photoZoomPrev && !photoZoomPrev.hidden) photoZoomPrev.click();
-        if (e.key === "ArrowRight" && photoZoomNext && !photoZoomNext.hidden) photoZoomNext.click();
+        if (e.key === "ArrowLeft") photoZoomStep(-1);
+        if (e.key === "ArrowRight") photoZoomStep(1);
+    });
+
+    pzSizeBtns.forEach(function (b) {
+        b.addEventListener("click", function () {
+            photoZoomSize = b.getAttribute("data-size");
+            pzSizeBtns.forEach(function (x) { x.classList.toggle("active", x === b); });
+        });
+    });
+
+    if (pzAddBtn) pzAddBtn.addEventListener("click", function () {
+        if (!photoZoomCard) return;
+        var product = {
+            name: productDisplayName(photoZoomCard),
+            price: parseFloat(photoZoomCard.getAttribute("data-price")),
+            image: photoZoomCard.getAttribute("data-image")
+        };
+        addToCart(product, photoZoomSize, 1);
+        closePanel(photoZoomModal, photoZoomBackdrop);
     });
 
 
@@ -1215,7 +1291,13 @@
     if (sizeChartClose) sizeChartClose.addEventListener("click", function () {
         closePanel(sizeChartModal, sizeChartBackdrop);
     });
-    if (sizeChartBackdrop) sizeChartBackdrop.addEventListener("click", closeAllPanels);
+    // Backdrop click closes only the size chart (so the photo popup underneath stays open).
+    if (sizeChartBackdrop) sizeChartBackdrop.addEventListener("click", function () {
+        closePanel(sizeChartModal, sizeChartBackdrop);
+    });
+    if (pzSizeChartBtn) pzSizeChartBtn.addEventListener("click", function () {
+        openPanel(sizeChartModal, sizeChartBackdrop);
+    });
 
     document.querySelectorAll(".size-btn").forEach(function (btn) {
         btn.addEventListener("click", function () {
