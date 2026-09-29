@@ -16,7 +16,8 @@
     var STORE_UPI_ID = "roopkathaa@upi";   // TODO: replace with your real UPI ID
     var STORE_UPI_NAME = "Roopkathaa";
     var SHIPPING_FEE = 99;
-    var FREE_SHIP_THRESHOLD = 999;
+    var FREE_SHIP_THRESHOLD = 1999;
+    var MAX_QTY_PER_PRODUCT = 3;   // a customer can't buy more than this many of the same product (same size)
 
     /* ---------- helpers ---------- */
 
@@ -49,14 +50,14 @@
         if (panelEl) panelEl.classList.remove("active");
         if (backdropEl) backdropEl.classList.remove("active");
         var anyOpen = document.querySelector(
-            ".mobile-menu.active, .search-overlay.active, .cart-drawer.active, .quickview-modal.active, .checkout-modal.active, .size-chart-modal.active"
+            ".mobile-menu.active, .search-overlay.active, .cart-drawer.active, .quickview-modal.active, .checkout-modal.active, .size-chart-modal.active, .photo-zoom-modal.active"
         );
         if (!anyOpen) document.body.style.overflow = "";
     }
 
     function closeAllPanels() {
         document.querySelectorAll(
-            ".mobile-menu, .search-overlay, .cart-drawer, .quickview-modal, .checkout-modal, .size-chart-modal"
+            ".mobile-menu, .search-overlay, .cart-drawer, .quickview-modal, .checkout-modal, .size-chart-modal, .photo-zoom-modal"
         ).forEach(function (el) { el.classList.remove("active"); });
         document.querySelectorAll(".overlay-backdrop").forEach(function (el) {
             el.classList.remove("active");
@@ -251,6 +252,10 @@
                     '</div>';
 
                 row.querySelector(".cart-qty-plus").addEventListener("click", function () {
+                    if (item.qty >= MAX_QTY_PER_PRODUCT) {
+                        showToast("You can add up to " + MAX_QTY_PER_PRODUCT + " of this item");
+                        return;
+                    }
                     item.qty += 1;
                     saveCart();
                     renderCart();
@@ -284,9 +289,18 @@
         qty = qty || 1;
         var key = product.name + "|" + size;
         var existing = cart.find(function (c) { return c.key === key; });
+        var wasCapped = false;
         if (existing) {
             existing.qty += qty;
+            if (existing.qty > MAX_QTY_PER_PRODUCT) {
+                existing.qty = MAX_QTY_PER_PRODUCT;
+                wasCapped = true;
+            }
         } else {
+            if (qty > MAX_QTY_PER_PRODUCT) {
+                qty = MAX_QTY_PER_PRODUCT;
+                wasCapped = true;
+            }
             cart.push({
                 key: key,
                 name: product.name,
@@ -298,7 +312,9 @@
         }
         saveCart();
         renderCart();
-        showToast(product.name + " added to bag");
+        showToast(wasCapped
+            ? "Only up to " + MAX_QTY_PER_PRODUCT + " of " + product.name + " can be added"
+            : product.name + " added to bag");
     }
 
     if (cartToggle) cartToggle.addEventListener("click", function () {
@@ -373,7 +389,7 @@
 
     function currentPayMethod() {
         var checked = document.querySelector('input[name="payMethod"]:checked');
-        return checked ? checked.value : "cod";
+        return checked ? checked.value : "upi";
     }
 
     function updateUpiLink() {
@@ -417,6 +433,7 @@
         checkoutFormView.classList.add("active");
         checkoutSuccessView.hidden = true;
         renderCheckoutSummary();
+        if (upiBox) upiBox.hidden = currentPayMethod() !== "upi";
         closePanel(cartDrawer, cartBackdrop);
         openPanel(checkoutModal, checkoutBackdrop);
     }
@@ -472,7 +489,7 @@
         lines.push("Shipping: " + (order.shipping === 0 ? "FREE" : money(order.shipping)));
         lines.push("Total: " + money(order.total));
         lines.push("");
-        lines.push("Payment Method: " + (order.payMethod === "upi" ? "UPI (paid via app)" : "Cash on Delivery"));
+        lines.push("Payment Method: " + (order.payMethod === "razorpay" ? "Paid online (Razorpay)" : "UPI (paid via app)"));
         lines.push("");
         lines.push("Name: " + order.name);
         lines.push("Phone: " + order.phone);
@@ -487,10 +504,10 @@
         localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
     }
 
-    /* Shared by both the existing COD/UPI flow below and the new
-       Razorpay flow — swaps the checkout modal from the form to the
-       success view exactly as it already did, just no longer
-       duplicated in two places. */
+    /* Shared by both the existing UPI flow below and the Razorpay
+       flow — swaps the checkout modal from the form to the success
+       view exactly as it already did, just no longer duplicated in
+       two places. */
     function showOrderSuccess(orderId, noteText) {
         successNote.textContent = noteText;
         successOrderId.textContent = orderId;
@@ -528,15 +545,14 @@
     }
 
     /* ---------- Razorpay (Pay Online) ----------
-       A third payment path alongside the existing Cash on Delivery
-       and UPI ones above — those two are completely untouched. This
-       one actually charges a card/UPI/wallet through Razorpay's
-       Checkout widget, with the amount always coming from the
-       server (server/products.js + server/payment.js), never from
-       this cart. */
+       A second payment path alongside the existing UPI one above —
+       that one is completely untouched. This one actually charges a
+       card/UPI/wallet through Razorpay's Checkout widget, with the
+       amount always coming from the server (server/products.js +
+       server/payment.js), never from this cart. */
     function startRazorpayCheckout() {
         if (typeof Razorpay === "undefined") {
-            showToast("Payment is temporarily unavailable. Please try Cash on Delivery or UPI.");
+            showToast("Payment is temporarily unavailable. Please try UPI instead.");
             return;
         }
 
@@ -644,7 +660,7 @@
             return;
         }
 
-        // ---- Cash on Delivery / UPI (unchanged) ----
+        // ---- UPI (unchanged) ----
         var t = checkoutTotals();
         var orderId = "RK" + Date.now().toString().slice(-8);
         var shipping = readShippingFields();
@@ -673,9 +689,7 @@
         var waUrl = "https://wa.me/" + STORE_WHATSAPP + "?text=" + encodeURIComponent(waMessage);
         window.open(waUrl, "_blank");
 
-        var note = payMethod === "upi"
-            ? "We've opened WhatsApp with your order details — please tap send there so our team can confirm your UPI payment."
-            : "We've opened WhatsApp with your order details — please tap send there so our team can confirm your Cash on Delivery order.";
+        var note = "We've opened WhatsApp with your order details — please tap send there so our team can confirm your UPI payment.";
         showOrderSuccess(orderId, note);
     });
 
@@ -1042,6 +1056,81 @@
     if (quickviewBackdrop) quickviewBackdrop.addEventListener("click", closeAllPanels);
 
 
+    /* ---------- PHOTO ZOOM POPUP ----------
+       Clicking a product photo directly in the New Arrivals / Best
+       Sellers grid opens a lightweight popup with just the enlarged
+       photo and prev/next arrows to flip between the product's
+       front/back photos — deliberately separate and smaller than
+       Quick View (no size selector, quantity or add-to-bag here). */
+
+    var photoZoomModal = document.getElementById("photoZoomModal");
+    var photoZoomBackdrop = document.getElementById("photoZoomBackdrop");
+    var photoZoomClose = document.getElementById("photoZoomClose");
+    var photoZoomImage = document.getElementById("photoZoomImage");
+    var photoZoomPrev = document.getElementById("photoZoomPrev");
+    var photoZoomNext = document.getElementById("photoZoomNext");
+
+    var photoZoomImages = [];
+    var photoZoomIndex = 0;
+
+    function showPhotoZoomImage() {
+        if (!photoZoomImage || !photoZoomImages.length) return;
+        photoZoomImage.src = photoZoomImages[photoZoomIndex];
+        var multi = photoZoomImages.length > 1;
+        if (photoZoomPrev) photoZoomPrev.hidden = !multi;
+        if (photoZoomNext) photoZoomNext.hidden = !multi;
+    }
+
+    function openPhotoZoom(card, startSrc) {
+        var frontEl = card.querySelector(".img-front") || card.querySelector(".product-image img");
+        var backEl = card.querySelector(".img-back");
+        photoZoomImages = [];
+        if (frontEl) photoZoomImages.push(frontEl.src);
+        if (backEl) photoZoomImages.push(backEl.src);
+        if (!photoZoomImages.length) return;
+
+        var startIdx = startSrc ? photoZoomImages.indexOf(startSrc) : -1;
+        photoZoomIndex = startIdx !== -1 ? startIdx : 0;
+        if (photoZoomImage) photoZoomImage.alt = productDisplayName(card);
+        showPhotoZoomImage();
+        openPanel(photoZoomModal, photoZoomBackdrop);
+    }
+
+    /* Clicking a product photo now flips it to show the back photo in
+       place (hover already zooms the current photo — see index.css).
+       Only wired up for cards that actually have a back photo. */
+    document.querySelectorAll(".product .product-image").forEach(function (imageBox) {
+        var backImg = imageBox.querySelector(".img-back");
+        if (!backImg) return;
+        imageBox.querySelectorAll("img").forEach(function (img) {
+            img.addEventListener("click", function () {
+                imageBox.classList.toggle("show-back");
+            });
+        });
+    });
+
+    if (photoZoomPrev) photoZoomPrev.addEventListener("click", function () {
+        if (!photoZoomImages.length) return;
+        photoZoomIndex = (photoZoomIndex - 1 + photoZoomImages.length) % photoZoomImages.length;
+        showPhotoZoomImage();
+    });
+    if (photoZoomNext) photoZoomNext.addEventListener("click", function () {
+        if (!photoZoomImages.length) return;
+        photoZoomIndex = (photoZoomIndex + 1) % photoZoomImages.length;
+        showPhotoZoomImage();
+    });
+    if (photoZoomClose) photoZoomClose.addEventListener("click", function () {
+        closePanel(photoZoomModal, photoZoomBackdrop);
+    });
+    if (photoZoomBackdrop) photoZoomBackdrop.addEventListener("click", closeAllPanels);
+
+    document.addEventListener("keydown", function (e) {
+        if (!photoZoomModal || !photoZoomModal.classList.contains("active")) return;
+        if (e.key === "ArrowLeft" && photoZoomPrev && !photoZoomPrev.hidden) photoZoomPrev.click();
+        if (e.key === "ArrowRight" && photoZoomNext && !photoZoomNext.hidden) photoZoomNext.click();
+    });
+
+
     /* ---------- SIZE CHART ----------
        One shared chart image, reused for every category (Anarkali,
        Short Kurti, Lehnga, Saree) — opened from the "SIZE CHART" link
@@ -1071,6 +1160,10 @@
     });
 
     if (qvQtyPlus) qvQtyPlus.addEventListener("click", function () {
+        if (currentQVQty >= MAX_QTY_PER_PRODUCT) {
+            showToast("You can add up to " + MAX_QTY_PER_PRODUCT + " of this item");
+            return;
+        }
         currentQVQty += 1;
         qvQty.textContent = currentQVQty;
     });
@@ -1139,6 +1232,20 @@
 
     if (backToTop) backToTop.addEventListener("click", function () {
         window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+
+    /* ---------- WHATSAPP FLOATING BUTTON ----------
+       Uses the same STORE_WHATSAPP number as checkout, so updating
+       it once at the top of this file updates both. */
+
+    var whatsappFloatBtn = document.getElementById("whatsappFloatBtn");
+    if (whatsappFloatBtn) {
+        whatsappFloatBtn.href = "https://wa.me/" + STORE_WHATSAPP;
+    }
+
+    document.querySelectorAll(".whatsapp-social-link").forEach(function (el) {
+        el.href = "https://wa.me/" + STORE_WHATSAPP;
     });
 
 
