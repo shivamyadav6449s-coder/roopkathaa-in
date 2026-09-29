@@ -3017,3 +3017,9 @@ footer {
     .why-us-item .why-icon { width: 60px; height: 60px; }
     .why-us-item .why-icon svg { width: 30px; height: 30px; }
 }
+
+/* Short kurtis (Zara, Noor, Mehar, Roohi) start on a fresh row so all
+   four sit together in one line; the leftover slot above stays empty. */
+#newArrivalsGrid > #kurtis {
+    grid-column-start: 1;
+}
