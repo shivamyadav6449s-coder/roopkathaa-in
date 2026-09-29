@@ -138,10 +138,12 @@
 
         var newArrivalsCards = newArrivalsGrid.querySelectorAll(".product");
         var bestSellerCards = bestSellersGrid ? bestSellersGrid.querySelectorAll(".product") : [];
+        var kurtiCards = kurtisGrid ? kurtisGrid.querySelectorAll(".product") : [];
 
         if (!query) {
             newArrivalsCards.forEach(function (card) { card.classList.remove("hidden-by-filter"); });
             bestSellerCards.forEach(function (card) { card.classList.remove("hidden-by-filter"); });
+            kurtiCards.forEach(function (card) { card.classList.remove("hidden-by-filter"); });
             if (noResultsMsg) noResultsMsg.hidden = true;
             return;
         }
@@ -162,6 +164,7 @@
         }
         newArrivalsCards.forEach(matchCard);
         bestSellerCards.forEach(matchCard);
+        kurtiCards.forEach(matchCard);
 
         if (noResultsMsg) noResultsMsg.hidden = anyVisible;
     }
@@ -1248,6 +1251,7 @@
     var filterChips = document.querySelectorAll(".chip-filter");
     var newArrivalsGrid = document.getElementById("newArrivalsGrid");
     var bestSellersGrid = document.getElementById("bestSellersGrid"); // used by runSiteSearch() above (hoisted var)
+    var kurtisGrid = document.getElementById("kurtisGrid");           // used by runSiteSearch() above (hoisted var)
 
     filterChips.forEach(function (chip) {
         chip.addEventListener("click", function () {
