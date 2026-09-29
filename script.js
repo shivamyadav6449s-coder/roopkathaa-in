@@ -1214,12 +1214,12 @@
         openPanel(photoZoomModal, photoZoomBackdrop);
     }
 
-    // Click on any product photo (not the wishlist heart) opens the popup.
+    // Click on any product photo (not the wishlist heart) opens the Quick View modal (front/back, size, qty, add to bag).
     document.querySelectorAll(".product .product-image").forEach(function (imageBox) {
         imageBox.addEventListener("click", function (e) {
             if (e.target.closest(".wish-btn")) return;
             var card = imageBox.closest(".product");
-            if (card) openPhotoZoom(card);
+            if (card) openQuickView(card);
         });
     });
 

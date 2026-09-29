@@ -3023,3 +3023,15 @@ footer {
 #newArrivalsGrid > #kurtis {
     grid-column-start: 1;
 }
+
+/* Hover on a card photo shows its BACK photo (only cards that have one).
+   Mouse/trackpad only, so touch screens never get a stuck state. */
+@media (hover: hover) and (pointer: fine) {
+    .product-image:hover .img-back {
+        opacity: 1;
+    }
+    .product-image:hover .img-back ~ .img-front,
+    .product-image:has(.img-back):hover .img-front {
+        opacity: 0;
+    }
+}
