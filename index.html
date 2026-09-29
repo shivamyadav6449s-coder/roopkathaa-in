@@ -199,7 +199,7 @@
                         <input type="radio" name="payMethod" value="razorpay">
                         <span class="payment-option-icon">💳</span>
                         <span class="payment-option-text">
-                            <span class="payment-option-title">Pay Online — Cards / UPI / Wallets</span>
+                            <span class="payment-option-title">Pay Online — UPI / Card / Net Banking</span>
                             <span class="payment-option-desc">Secure checkout powered by Razorpay</span>
                         </span>
                     </label>
@@ -231,9 +231,10 @@
     <div class="checkout-view" id="checkoutSuccessView" hidden>
         <div class="checkout-success">
             <span class="success-icon">✓</span>
-            <h2>Order Placed!</h2>
+            <h2 id="successTitle">Order Placed!</h2>
             <p>Order ID <strong id="successOrderId"></strong> has been received.</p>
             <p id="successNote">We've opened WhatsApp with your order details — please tap send there so our team can confirm it.</p>
+            <a href="#" class="btn" id="successWhatsappLink" target="_blank" rel="noopener" style="display:none; margin-bottom:10px;">SEND ORDER ON WHATSAPP</a>
             <button type="button" class="btn" id="checkoutDoneBtn">CONTINUE SHOPPING</button>
         </div>
     </div>
@@ -916,11 +917,8 @@
 <div class="toast" id="toast"></div>
 
 
-<!-- Official Razorpay Checkout SDK — only used when "Pay Online" is
-     selected at checkout (see script.js). Standard, required way to
-     open Razorpay's payment widget; nothing else on the site depends
-     on it. -->
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<!-- Razorpay's Checkout script is no longer loaded here — script.js
+     loads it on demand, only when a customer chooses "Pay Online". -->
 <script src="script.js"></script>
 </body>
 </html>

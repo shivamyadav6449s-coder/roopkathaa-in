@@ -354,6 +354,23 @@
 
     if (upiIdText) upiIdText.textContent = STORE_UPI_ID;
 
+    /* "Pay Online" is only offered when the server actually has
+       Razorpay configured — otherwise customers would see an option
+       that can't work. Hidden until the server confirms. */
+    var razorpayOptionLabel = (function () {
+        var input = document.querySelector('input[name="payMethod"][value="razorpay"]');
+        return input ? input.closest(".payment-option") : null;
+    })();
+    if (razorpayOptionLabel) {
+        razorpayOptionLabel.style.display = "none";
+        fetch("/api/payment/config", { credentials: "include" })
+            .then(function (res) { return res.ok ? res.json() : { enabled: false }; })
+            .then(function (cfg) {
+                if (cfg && cfg.enabled) razorpayOptionLabel.style.display = "";
+            })
+            .catch(function () { /* stays hidden */ });
+    }
+
     function checkoutTotals() {
         var subtotal = cart.reduce(function (sum, item) {
             return sum + item.price * item.qty;
@@ -489,7 +506,7 @@
         lines.push("Shipping: " + (order.shipping === 0 ? "FREE" : money(order.shipping)));
         lines.push("Total: " + money(order.total));
         lines.push("");
-        lines.push("Payment Method: " + (order.payMethod === "razorpay" ? "Paid online (Razorpay)" : "UPI (paid via app)"));
+        lines.push("Payment Method: " + (order.payMethod === "razorpay" ? "Paid online via Razorpay (payment verified by server)" : "UPI (payment verify karein)"));
         lines.push("");
         lines.push("Name: " + order.name);
         lines.push("Phone: " + order.phone);
@@ -508,7 +525,19 @@
        flow — swaps the checkout modal from the form to the success
        view exactly as it already did, just no longer duplicated in
        two places. */
-    function showOrderSuccess(orderId, noteText) {
+    function showOrderSuccess(orderId, noteText, opts) {
+        opts = opts || {};
+        var successTitle = document.getElementById("successTitle");
+        var successWaLink = document.getElementById("successWhatsappLink");
+        if (successTitle) successTitle.textContent = opts.title || "Order Placed!";
+        if (successWaLink) {
+            if (opts.whatsappUrl) {
+                successWaLink.setAttribute("href", opts.whatsappUrl);
+                successWaLink.style.display = "";
+            } else {
+                successWaLink.style.display = "none";
+            }
+        }
         successNote.textContent = noteText;
         successOrderId.textContent = orderId;
 
@@ -550,26 +579,37 @@
        card/UPI/wallet through Razorpay's Checkout widget, with the
        amount always coming from the server (server/products.js +
        server/payment.js), never from this cart. */
-    function startRazorpayCheckout() {
-        if (typeof Razorpay === "undefined") {
-            showToast("Payment is temporarily unavailable. Please try UPI instead.");
-            return;
-        }
+    /* Razorpay's Checkout script is only downloaded when a customer
+       actually chooses Pay Online — nobody else pays for it. */
+    function loadRazorpaySdk() {
+        return new Promise(function (resolve, reject) {
+            if (typeof Razorpay !== "undefined") { resolve(); return; }
+            var tag = document.createElement("script");
+            tag.src = "https://checkout.razorpay.com/v1/checkout.js";
+            tag.onload = function () { resolve(); };
+            tag.onerror = function () { reject(new Error("razorpay sdk failed to load")); };
+            document.head.appendChild(tag);
+        });
+    }
 
+    function startRazorpayCheckout() {
         var shipping = readShippingFields();
         setPlaceOrderLoading(true, "STARTING PAYMENT…");
 
-        fetch("/api/payment/create-order", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-                items: cart.map(function (item) {
-                    return { name: item.name, size: item.size, qty: item.qty };
-                }),
-                shipping: shipping
+        loadRazorpaySdk()
+            .then(function () {
+                return fetch("/api/payment/create-order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        items: cart.map(function (item) {
+                            return { name: item.name, size: item.size, qty: item.qty };
+                        }),
+                        shipping: shipping
+                    })
+                });
             })
-        })
             .then(function (res) {
                 return res.json().then(function (data) { return { ok: res.ok, data: data }; });
             })
@@ -590,6 +630,7 @@
                     order_id: data.razorpayOrderId,
                     prefill: {
                         name: shipping.name,
+                        email: data.customerEmail || "",
                         contact: shipping.phone
                     },
                     notes: { localOrderId: data.localOrderId },
@@ -613,9 +654,33 @@
                             .then(function (verifyResult) {
                                 setPlaceOrderLoading(false, "PLACE ORDER");
                                 if (verifyResult.ok && verifyResult.body && verifyResult.body.ok) {
+                                    // Only reached after the server verified Razorpay's signature.
+                                    var t = checkoutTotals();
+                                    var paidOrder = {
+                                        id: data.localOrderId,
+                                        items: cart.map(function (item) {
+                                            return { name: item.name, size: item.size, qty: item.qty, price: item.price };
+                                        }),
+                                        subtotal: t.subtotal,
+                                        shipping: t.shipping,
+                                        total: t.total,
+                                        payMethod: "razorpay",
+                                        name: shipping.name,
+                                        phone: shipping.phone,
+                                        address: shipping.address,
+                                        city: shipping.city,
+                                        state: shipping.state,
+                                        pincode: shipping.pincode,
+                                        placedAt: new Date().toISOString()
+                                    };
+                                    saveOrder(paidOrder);
                                     showOrderSuccess(
                                         data.localOrderId,
-                                        "Payment successful — your order is confirmed! We'll start preparing it right away."
+                                        "Payment successful — your order is confirmed! Tap the button below to also send your order details to us on WhatsApp.",
+                                        {
+                                            title: "Payment Successful · Order Confirmed",
+                                            whatsappUrl: "https://wa.me/" + STORE_WHATSAPP + "?text=" + encodeURIComponent(buildWhatsAppMessage(paidOrder))
+                                        }
                                     );
                                 } else {
                                     showToast((verifyResult.body && verifyResult.body.error) || "Payment verification failed. Please contact us if money was deducted.");
@@ -629,7 +694,7 @@
                     modal: {
                         ondismiss: function () {
                             setPlaceOrderLoading(false, "PLACE ORDER");
-                            showToast("Payment cancelled.");
+                            showToast("Payment cancelled — you can tap Place Order to try again.");
                         }
                     }
                 });

@@ -38,7 +38,7 @@ var CATALOG = {
 // Same numbers script.js uses for the cart/checkout summary — kept
 // here too so the server can independently recompute the same total.
 var SHIPPING_FEE = 99;
-var FREE_SHIP_THRESHOLD = 999;
+var FREE_SHIP_THRESHOLD = 1999;
 
 /* Looks up a trusted price for a cart item's name. Handles both
    product-name shapes that exist in the DOM:

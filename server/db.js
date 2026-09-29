@@ -109,6 +109,27 @@ const mongoImpl = {
         const database = await getMongoDb();
         const result = await database.collection("orders").updateOne({ id: id }, { $set: patch });
         return result.matchedCount > 0;
+    },
+    /* Atomic "pending/failed -> paid". Returns true only for the ONE
+       caller that actually flips the order to paid, so /verify and the
+       webhook racing each other (or Razorpay re-sending an event) can
+       never process the same payment twice. */
+    async markOrderPaid(id, patch) {
+        const database = await getMongoDb();
+        const result = await database.collection("orders").updateOne(
+            { id: id, paymentStatus: { $ne: "paid" } },
+            { $set: Object.assign({}, patch, { paymentStatus: "paid", status: "confirmed" }) }
+        );
+        return result.modifiedCount > 0;
+    },
+    /* Records a failed attempt, but never overwrites an already-paid order. */
+    async markOrderFailed(id, patch) {
+        const database = await getMongoDb();
+        const result = await database.collection("orders").updateOne(
+            { id: id, paymentStatus: { $ne: "paid" } },
+            { $set: Object.assign({}, patch, { paymentStatus: "failed" }) }
+        );
+        return result.modifiedCount > 0;
     }
 };
 
@@ -208,6 +229,22 @@ const fileImpl = {
         Object.assign(order, patch);
         writeFileDb(db);
         return true;
+    },
+    async markOrderPaid(id, patch) {
+        const db = readFileDb();
+        const order = db.orders.find(function (o) { return o.id === id; });
+        if (!order || order.paymentStatus === "paid") return false;
+        Object.assign(order, patch, { paymentStatus: "paid", status: "confirmed" });
+        writeFileDb(db);
+        return true;
+    },
+    async markOrderFailed(id, patch) {
+        const db = readFileDb();
+        const order = db.orders.find(function (o) { return o.id === id; });
+        if (!order || order.paymentStatus === "paid") return false;
+        Object.assign(order, patch, { paymentStatus: "failed" });
+        writeFileDb(db);
+        return true;
     }
 };
 
@@ -227,5 +264,7 @@ module.exports = {
     findOrderById: impl.findOrderById,
     findOrdersByUser: impl.findOrdersByUser,
     findOrderByRazorpayOrderId: impl.findOrderByRazorpayOrderId,
-    updateOrder: impl.updateOrder
+    updateOrder: impl.updateOrder,
+    markOrderPaid: impl.markOrderPaid,
+    markOrderFailed: impl.markOrderFailed
 };

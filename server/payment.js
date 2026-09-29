@@ -1,11 +1,15 @@
 /* ==========================================================
    RAZORPAY PAYMENTS
    ----------------------------------------------------------
-   Adds online payment to the existing checkout (Cash on Delivery
-   and UPI-deep-link, in script.js, are untouched and keep working
-   exactly as before — this is a third option, not a replacement).
+   Adds online payment to the existing checkout (the manual UPI
+   flow in script.js is untouched and keeps working exactly as
+   before — this is a second option, not a replacement).
 
-   Three endpoints:
+   Endpoints:
+     GET  /api/payment/config        — tells the frontend whether
+                                        Razorpay is configured, so the
+                                        "Pay Online" option is only
+                                        shown when it can really work
      POST /api/payment/create-order  — start a payment
      POST /api/payment/verify        — confirm one after Razorpay
                                         Checkout closes
@@ -116,6 +120,20 @@ function priceShipping(raw) {
     return { name: name, phone: phone, address: address, city: city, state: state, pincode: pincode };
 }
 
+/* Identifies "the same cart, to the same address, for the same total".
+   Used so a customer who cancels the Razorpay popup and clicks Pay
+   Online again re-opens the SAME pending order instead of piling up
+   duplicate unpaid orders in the database. */
+function orderFingerprint(items, shippingAddress, total) {
+    return crypto.createHash("sha256").update(JSON.stringify([
+        items.map(function (i) { return [i.name, i.size, i.qty, i.price]; }),
+        total,
+        shippingAddress
+    ])).digest("hex");
+}
+
+const RETRY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
 function publicOrder(o) {
     return {
         id: o.id,
@@ -130,13 +148,19 @@ function publicOrder(o) {
     };
 }
 
+/* ---------- GET /api/payment/config ---------- */
+
+router.get("/config", function (req, res) {
+    res.json({ enabled: !!getRazorpay() });
+});
+
 /* ---------- POST /api/payment/create-order ---------- */
 
 router.post("/create-order", requireAuth, asyncRoute(async function (req, res) {
     const razorpay = getRazorpay();
     if (!razorpay) {
         return res.status(503).json({
-            error: "Online payment isn't set up yet. Please choose Cash on Delivery or UPI instead."
+            error: "Online payment isn't set up yet. Please choose UPI instead."
         });
     }
 
@@ -149,6 +173,29 @@ router.post("/create-order", requireAuth, asyncRoute(async function (req, res) {
         return res.status(400).json({ error: "Please fill in all shipping details." });
     }
 
+    const fingerprint = orderFingerprint(priced.items, shippingAddress, priced.total);
+
+    /* Retry after a cancelled / failed attempt: reuse the still-unpaid
+       order for this exact cart instead of creating another one. */
+    const previous = await db.findOrdersByUser(req.user.id);
+    const reusable = previous.find(function (o) {
+        return o.paymentMethod === "razorpay" &&
+            o.paymentStatus !== "paid" &&
+            o.fingerprint === fingerprint &&
+            o.razorpayOrderId &&
+            (Date.now() - new Date(o.createdAt).getTime()) < RETRY_WINDOW_MS;
+    });
+    if (reusable) {
+        return res.json({
+            keyId: RAZORPAY_KEY_ID,
+            razorpayOrderId: reusable.razorpayOrderId,
+            amount: Math.round(reusable.total * 100),
+            currency: "INR",
+            localOrderId: reusable.id,
+            customerEmail: req.user.email
+        });
+    }
+
     const localOrder = {
         id: newOrderId(),
         userId: req.user.id,
@@ -159,8 +206,9 @@ router.post("/create-order", requireAuth, asyncRoute(async function (req, res) {
         total: priced.total,
         shippingAddress: shippingAddress,
         paymentMethod: "razorpay",
-        paymentStatus: "pending",   // pending -> paid | verification_failed
-        status: "created",          // created -> confirmed
+        fingerprint: fingerprint,
+        paymentStatus: "pending",   // pending -> paid | failed
+        status: "pending",          // pending -> confirmed (only after server-side verification)
         razorpayOrderId: null,
         razorpayPaymentId: null,
         createdAt: new Date().toISOString()
@@ -187,7 +235,8 @@ router.post("/create-order", requireAuth, asyncRoute(async function (req, res) {
         razorpayOrderId: razorpayOrder.id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        localOrderId: localOrder.id
+        localOrderId: localOrder.id,
+        customerEmail: req.user.email
     });
 }));
 
@@ -230,22 +279,25 @@ router.post("/verify", requireAuth, asyncRoute(async function (req, res) {
     const signatureValid = expectedBuf.length === gotBuf.length && crypto.timingSafeEqual(expectedBuf, gotBuf);
 
     if (!signatureValid) {
-        await db.updateOrder(localOrderId, {
-            paymentStatus: "verification_failed",
-            razorpayPaymentId: razorpayPaymentId
+        console.warn("Razorpay signature mismatch for order " + localOrderId + " (payment " + razorpayPaymentId + ")");
+        await db.markOrderFailed(localOrderId, {
+            razorpayPaymentId: razorpayPaymentId,
+            failureReason: "signature_mismatch"
         });
         return res.status(400).json({
             error: "Payment verification failed. If money was deducted, it will be auto-refunded by Razorpay within a few days. Please contact us with your Order ID: " + localOrderId
         });
     }
 
-    await db.updateOrder(localOrderId, {
-        paymentStatus: "paid",
-        status: "confirmed",
+    // Atomic: if the webhook (or a duplicate /verify call) already
+    // flipped this order to paid, this simply returns false and we
+    // fall through to the same success response — nothing runs twice.
+    const flipped = await db.markOrderPaid(localOrderId, {
         razorpayPaymentId: razorpayPaymentId,
         razorpaySignature: razorpaySignature,
         paidAt: new Date().toISOString()
     });
+    if (flipped) console.log("Order " + localOrderId + " paid (Razorpay payment " + razorpayPaymentId + ")");
 
     const updated = await db.findOrderById(localOrderId);
     res.json({ ok: true, order: publicOrder(updated) });
@@ -289,23 +341,32 @@ const webhookHandler = asyncRoute(async function (req, res) {
     const event = payload && payload.event;
     const paymentEntity = payload && payload.payload && payload.payload.payment && payload.payload.payment.entity;
 
-    if ((event === "payment.captured" || event === "order.paid") && paymentEntity) {
-        const razorpayOrderId = paymentEntity.order_id;
-        const razorpayPaymentId = paymentEntity.id;
-
+    if (paymentEntity && paymentEntity.order_id) {
         // Look up which local order this Razorpay order belongs to by
         // the razorpayOrderId we stored on it in /create-order — works
-        // regardless of whether Razorpay echoes notes back on the
-        // payment entity.
-        const order = razorpayOrderId ? await db.findOrderByRazorpayOrderId(razorpayOrderId) : null;
+        // regardless of whether Razorpay echoes notes back.
+        const order = await db.findOrderByRazorpayOrderId(paymentEntity.order_id);
 
-        if (order && order.paymentStatus !== "paid") {
-            await db.updateOrder(order.id, {
-                paymentStatus: "paid",
-                status: "confirmed",
-                razorpayPaymentId: razorpayPaymentId,
-                paidAt: new Date().toISOString()
-            });
+        if (order) {
+            if (event === "payment.captured" || event === "order.paid") {
+                // Safety: only accept it if the paid amount matches the
+                // server-calculated total for this order.
+                if (Number(paymentEntity.amount) === Math.round(order.total * 100)) {
+                    const flipped = await db.markOrderPaid(order.id, {
+                        razorpayPaymentId: paymentEntity.id,
+                        paidAt: new Date().toISOString()
+                    });
+                    if (flipped) console.log("Order " + order.id + " paid via webhook (Razorpay payment " + paymentEntity.id + ")");
+                } else {
+                    console.warn("Webhook amount mismatch for order " + order.id + " (payment " + paymentEntity.id + ")");
+                }
+            } else if (event === "payment.failed") {
+                // markOrderFailed never touches an order that is already paid.
+                await db.markOrderFailed(order.id, {
+                    razorpayPaymentId: paymentEntity.id,
+                    failureReason: cleanString(paymentEntity.error_code || "payment_failed", 60)
+                });
+            }
         }
     }
 
