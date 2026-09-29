@@ -246,7 +246,7 @@
     <img src="images/hero/hero-banner.jpg" alt="Roop Kathaa — Every Outfit Tells Your Story. Anarkali, Kurti, Lehenga and Saree collections" class="hero-banner-img">
 
     <a href="#new-arrivals" class="hero-pill-link hero-pill-anarkali" data-hero-filter="anarkali" aria-label="Shop Anarkali"></a>
-    <a href="#kurtis" class="hero-pill-link hero-pill-kurti" aria-label="Shop Kurti"></a>
+    <a href="#kurtis" data-hero-filter="all" class="hero-pill-link hero-pill-kurti" aria-label="Shop Kurti"></a>
     <a href="#new-arrivals" class="hero-pill-link hero-pill-lehenga" data-hero-filter="lehenga" aria-label="Shop Lehenga"></a>
     <a href="#new-arrivals" class="hero-pill-link hero-pill-saree" data-hero-filter="saree" aria-label="Shop Saree"></a>
 
@@ -296,10 +296,10 @@
 
     <div class="filter-chips" data-target="newArrivalsGrid">
         <button class="chip-filter active" data-filter="all">All</button>
-        <button class="chip-filter" data-filter="saree">Sarees</button>
-        <button class="chip-filter" data-filter="kurti">Kurtis</button>
-        <button class="chip-filter" data-filter="lehenga">Lehengas</button>
         <button class="chip-filter" data-filter="anarkali">Anarkalis</button>
+        <button class="chip-filter" data-filter="kurti">Kurtis</button>
+        <button class="chip-filter" data-filter="saree">Sarees</button>
+        <button class="chip-filter" data-filter="lehenga">Lehengas</button>
     </div>
 
     <div class="products" id="newArrivalsGrid">
@@ -399,72 +399,6 @@
             <button class="add-cart-btn">ADD TO BAG</button>
         </div>
 
-        <div class="product" data-category="saree" data-name="Green Zari Banarasi Silk Saree" data-price="4499" data-old-price="6499" data-image="images/products/banarasi-saree/green-front.jpg">
-            <div class="product-image">
-                <span class="tag tag-sale">30% OFF</span>
-                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
-                <img src="images/products/banarasi-saree/green-front.jpg" alt="Green Zari Banarasi Silk Saree">
-            </div>
-            <h3>Green Zari Banarasi Silk Saree</h3>
-            <p>Sarees · Banarasi Silk</p>
-            <div class="product-rating">★★★★★ <span>(94)</span></div>
-            <div class="price-row">
-                <span class="price">₹4,499</span>
-                <span class="old-price">₹6,499</span>
-                <span class="discount">30% OFF</span>
-            </div>
-            <button class="add-cart-btn">ADD TO BAG</button>
-        </div>
-
-        <div class="product" data-category="kurti" data-name="Bandhani Print Kurti" data-price="1299" data-old-price="" data-image="images/products/prod-03.svg">
-            <div class="product-image">
-                <span class="tag tag-new">NEW</span>
-                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
-                <img src="images/products/prod-03.svg" alt="Bandhani Print Kurti">
-            </div>
-            <h3>Bandhani Print Kurti</h3>
-            <p>Kurtis</p>
-            <div class="product-rating">★★★★☆ <span>(61)</span></div>
-            <div class="price-row">
-                <span class="price">₹1,299</span>
-            </div>
-            <button class="add-cart-btn">ADD TO BAG</button>
-        </div>
-
-        <div class="product" data-category="lehenga" data-name="Emerald Designer Lehenga" data-price="6999" data-old-price="9999" data-image="images/products/prod-04.svg">
-            <div class="product-image">
-                <span class="tag tag-sale">30% OFF</span>
-                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
-                <img src="images/products/prod-04.svg" alt="Emerald Designer Lehenga">
-            </div>
-            <h3>Emerald Designer Lehenga</h3>
-            <p>Lehengas</p>
-            <div class="product-rating">★★★★★ <span>(203)</span></div>
-            <div class="price-row">
-                <span class="price">₹6,999</span>
-                <span class="old-price">₹9,999</span>
-                <span class="discount">30% OFF</span>
-            </div>
-            <button class="add-cart-btn">ADD TO BAG</button>
-        </div>
-
-        <div class="product" data-category="saree" data-name="Mustard Organza Saree" data-price="2599" data-old-price="3499" data-image="images/products/prod-07.svg">
-            <div class="product-image">
-                <span class="tag tag-new">NEW</span>
-                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
-                <img src="images/products/prod-07.svg" alt="Mustard Organza Saree">
-            </div>
-            <h3>Mustard Organza Saree</h3>
-            <p>Sarees</p>
-            <div class="product-rating">★★★★☆ <span>(45)</span></div>
-            <div class="price-row">
-                <span class="price">₹2,599</span>
-                <span class="old-price">₹3,499</span>
-                <span class="discount">26% OFF</span>
-            </div>
-            <button class="add-cart-btn">ADD TO BAG</button>
-        </div>
-
         <div class="product" data-category="anarkali" data-name="Sharara Festive Set" data-price="3299" data-old-price="" data-image="images/products/prod-08.svg">
             <div class="product-image">
                 <span class="tag tag-new">NEW</span>
@@ -480,66 +414,7 @@
             <button class="add-cart-btn">ADD TO BAG</button>
         </div>
 
-        <div class="product" data-category="kurti" data-name="Chikankari Cotton Kurta" data-price="1599" data-old-price="1999" data-image="images/products/prod-06.svg">
-            <div class="product-image">
-                <span class="tag tag-sale">20% OFF</span>
-                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
-                <img src="images/products/prod-06.svg" alt="Chikankari Cotton Kurta">
-            </div>
-            <h3>Chikankari Cotton Kurta</h3>
-            <p>Kurtis</p>
-            <div class="product-rating">★★★★☆ <span>(112)</span></div>
-            <div class="price-row">
-                <span class="price">₹1,599</span>
-                <span class="old-price">₹1,999</span>
-                <span class="discount">20% OFF</span>
-            </div>
-            <button class="add-cart-btn">ADD TO BAG</button>
-        </div>
-
-        <div class="product" data-category="lehenga" data-name="Wine Velvet Lehenga" data-price="7499" data-old-price="" data-image="images/products/prod-09.svg">
-            <div class="product-image">
-                <span class="tag tag-new">NEW</span>
-                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
-                <img src="images/products/prod-09.svg" alt="Wine Velvet Lehenga">
-            </div>
-            <h3>Wine Velvet Lehenga</h3>
-            <p>Lehengas</p>
-            <div class="product-rating">★★★★★ <span>(58)</span></div>
-            <div class="price-row">
-                <span class="price">₹7,499</span>
-            </div>
-            <button class="add-cart-btn">ADD TO BAG</button>
-        </div>
-
-    </div>
-
-    <p class="no-results-msg" id="noResultsMsg" hidden>No products matched your search. Try a different word, or clear the search to see everything again.</p>
-
-    <div class="center">
-        <a href="#" class="outline-btn">VIEW ALL NEW ARRIVALS</a>
-    </div>
-
-</section>
-
-
-<!-- MARQUEE -->
-<div class="marquee">
-    <span>NEW SEASON ARRIVALS ✦ FREE SHIPPING ABOVE ₹1999 ✦ EASY 7-DAY RETURNS ✦ HANDPICKED FABRICS ✦ NEW SEASON ARRIVALS ✦ FREE SHIPPING ABOVE ₹1999 ✦ EASY 7-DAY RETURNS ✦ HANDPICKED FABRICS ✦</span>
-</div>
-
-
-<!-- KURTIS -->
-<section class="section" id="kurtis">
-
-    <div class="section-heading">
-        <p>EVERYDAY STYLE</p>
-        <h2>Kurtis</h2>
-    </div>
-
-    <div class="products" id="kurtisGrid">
-
-        <div class="product" data-category="kurti" data-name="Zara — Red" data-price="599" data-old-price="" data-image="images/products/short-kurti/red-front.jpg">
+        <div class="product" id="kurtis" data-category="kurti" data-name="Zara — Red" data-price="599" data-old-price="" data-image="images/products/short-kurti/red-front.jpg">
             <div class="product-image">
                 <span class="tag tag-new">NEW</span>
                 <button class="wish-btn" aria-label="Add to wishlist">♡</button>
@@ -597,10 +472,119 @@
             <button class="add-cart-btn">ADD TO BAG</button>
         </div>
 
+        <div class="product" data-category="kurti" data-name="Bandhani Print Kurti" data-price="1299" data-old-price="" data-image="images/products/prod-03.svg">
+            <div class="product-image">
+                <span class="tag tag-new">NEW</span>
+                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
+                <img src="images/products/prod-03.svg" alt="Bandhani Print Kurti">
+            </div>
+            <h3>Bandhani Print Kurti</h3>
+            <p>Kurtis</p>
+            <div class="product-rating">★★★★☆ <span>(61)</span></div>
+            <div class="price-row">
+                <span class="price">₹1,299</span>
+            </div>
+            <button class="add-cart-btn">ADD TO BAG</button>
+        </div>
+
+        <div class="product" data-category="kurti" data-name="Chikankari Cotton Kurta" data-price="1599" data-old-price="1999" data-image="images/products/prod-06.svg">
+            <div class="product-image">
+                <span class="tag tag-sale">20% OFF</span>
+                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
+                <img src="images/products/prod-06.svg" alt="Chikankari Cotton Kurta">
+            </div>
+            <h3>Chikankari Cotton Kurta</h3>
+            <p>Kurtis</p>
+            <div class="product-rating">★★★★☆ <span>(112)</span></div>
+            <div class="price-row">
+                <span class="price">₹1,599</span>
+                <span class="old-price">₹1,999</span>
+                <span class="discount">20% OFF</span>
+            </div>
+            <button class="add-cart-btn">ADD TO BAG</button>
+        </div>
+
+        <div class="product" data-category="saree" data-name="Green Zari Banarasi Silk Saree" data-price="4499" data-old-price="6499" data-image="images/products/banarasi-saree/green-front.jpg">
+            <div class="product-image">
+                <span class="tag tag-sale">30% OFF</span>
+                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
+                <img src="images/products/banarasi-saree/green-front.jpg" alt="Green Zari Banarasi Silk Saree">
+            </div>
+            <h3>Green Zari Banarasi Silk Saree</h3>
+            <p>Sarees · Banarasi Silk</p>
+            <div class="product-rating">★★★★★ <span>(94)</span></div>
+            <div class="price-row">
+                <span class="price">₹4,499</span>
+                <span class="old-price">₹6,499</span>
+                <span class="discount">30% OFF</span>
+            </div>
+            <button class="add-cart-btn">ADD TO BAG</button>
+        </div>
+
+        <div class="product" data-category="saree" data-name="Mustard Organza Saree" data-price="2599" data-old-price="3499" data-image="images/products/prod-07.svg">
+            <div class="product-image">
+                <span class="tag tag-new">NEW</span>
+                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
+                <img src="images/products/prod-07.svg" alt="Mustard Organza Saree">
+            </div>
+            <h3>Mustard Organza Saree</h3>
+            <p>Sarees</p>
+            <div class="product-rating">★★★★☆ <span>(45)</span></div>
+            <div class="price-row">
+                <span class="price">₹2,599</span>
+                <span class="old-price">₹3,499</span>
+                <span class="discount">26% OFF</span>
+            </div>
+            <button class="add-cart-btn">ADD TO BAG</button>
+        </div>
+
+        <div class="product" data-category="lehenga" data-name="Emerald Designer Lehenga" data-price="6999" data-old-price="9999" data-image="images/products/prod-04.svg">
+            <div class="product-image">
+                <span class="tag tag-sale">30% OFF</span>
+                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
+                <img src="images/products/prod-04.svg" alt="Emerald Designer Lehenga">
+            </div>
+            <h3>Emerald Designer Lehenga</h3>
+            <p>Lehengas</p>
+            <div class="product-rating">★★★★★ <span>(203)</span></div>
+            <div class="price-row">
+                <span class="price">₹6,999</span>
+                <span class="old-price">₹9,999</span>
+                <span class="discount">30% OFF</span>
+            </div>
+            <button class="add-cart-btn">ADD TO BAG</button>
+        </div>
+
+        <div class="product" data-category="lehenga" data-name="Wine Velvet Lehenga" data-price="7499" data-old-price="" data-image="images/products/prod-09.svg">
+            <div class="product-image">
+                <span class="tag tag-new">NEW</span>
+                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
+                <img src="images/products/prod-09.svg" alt="Wine Velvet Lehenga">
+            </div>
+            <h3>Wine Velvet Lehenga</h3>
+            <p>Lehengas</p>
+            <div class="product-rating">★★★★★ <span>(58)</span></div>
+            <div class="price-row">
+                <span class="price">₹7,499</span>
+            </div>
+            <button class="add-cart-btn">ADD TO BAG</button>
+        </div>
 
     </div>
 
+    <p class="no-results-msg" id="noResultsMsg" hidden>No products matched your search. Try a different word, or clear the search to see everything again.</p>
+
+    <div class="center">
+        <a href="#" class="outline-btn">VIEW ALL NEW ARRIVALS</a>
+    </div>
+
 </section>
+
+
+<!-- MARQUEE -->
+<div class="marquee">
+    <span>NEW SEASON ARRIVALS ✦ FREE SHIPPING ABOVE ₹1999 ✦ EASY 7-DAY RETURNS ✦ HANDPICKED FABRICS ✦ NEW SEASON ARRIVALS ✦ FREE SHIPPING ABOVE ₹1999 ✦ EASY 7-DAY RETURNS ✦ HANDPICKED FABRICS ✦</span>
+</div>
 
 
 <!-- FEATURE -->
@@ -660,38 +644,6 @@
             <button class="add-cart-btn">ADD TO BAG</button>
         </div>
 
-        <div class="product" data-category="saree" data-name="Classic Banarasi Saree" data-price="5299" data-old-price="" data-image="images/products/prod-12.svg">
-            <div class="product-image">
-                <span class="tag tag-best">BESTSELLER</span>
-                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
-                <img src="images/products/prod-12.svg" alt="Classic Banarasi Saree">
-            </div>
-            <h3>Classic Banarasi Saree</h3>
-            <p>Sarees</p>
-            <div class="product-rating">★★★★★ <span>(341)</span></div>
-            <div class="price-row">
-                <span class="price">₹5,299</span>
-            </div>
-            <button class="add-cart-btn">ADD TO BAG</button>
-        </div>
-
-        <div class="product" data-category="lehenga" data-name="Royal Blue Designer Lehenga" data-price="8299" data-old-price="10999" data-image="images/products/prod-04.svg">
-            <div class="product-image">
-                <span class="tag tag-best">BESTSELLER</span>
-                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
-                <img src="images/products/prod-04.svg" alt="Royal Blue Designer Lehenga">
-            </div>
-            <h3>Royal Blue Designer Lehenga</h3>
-            <p>Lehengas</p>
-            <div class="product-rating">★★★★★ <span>(276)</span></div>
-            <div class="price-row">
-                <span class="price">₹8,299</span>
-                <span class="old-price">₹10,999</span>
-                <span class="discount">25% OFF</span>
-            </div>
-            <button class="add-cart-btn">ADD TO BAG</button>
-        </div>
-
         <div class="product" data-category="anarkali" data-name="Ivory Chikankari Anarkali" data-price="3899" data-old-price="" data-image="images/products/prod-01.svg">
             <div class="product-image">
                 <span class="tag tag-best">BESTSELLER</span>
@@ -720,6 +672,38 @@
                 <span class="price">₹1,199</span>
                 <span class="old-price">₹1,499</span>
                 <span class="discount">20% OFF</span>
+            </div>
+            <button class="add-cart-btn">ADD TO BAG</button>
+        </div>
+
+        <div class="product" data-category="saree" data-name="Classic Banarasi Saree" data-price="5299" data-old-price="" data-image="images/products/prod-12.svg">
+            <div class="product-image">
+                <span class="tag tag-best">BESTSELLER</span>
+                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
+                <img src="images/products/prod-12.svg" alt="Classic Banarasi Saree">
+            </div>
+            <h3>Classic Banarasi Saree</h3>
+            <p>Sarees</p>
+            <div class="product-rating">★★★★★ <span>(341)</span></div>
+            <div class="price-row">
+                <span class="price">₹5,299</span>
+            </div>
+            <button class="add-cart-btn">ADD TO BAG</button>
+        </div>
+
+        <div class="product" data-category="lehenga" data-name="Royal Blue Designer Lehenga" data-price="8299" data-old-price="10999" data-image="images/products/prod-04.svg">
+            <div class="product-image">
+                <span class="tag tag-best">BESTSELLER</span>
+                <button class="wish-btn" aria-label="Add to wishlist">♡</button>
+                <img src="images/products/prod-04.svg" alt="Royal Blue Designer Lehenga">
+            </div>
+            <h3>Royal Blue Designer Lehenga</h3>
+            <p>Lehengas</p>
+            <div class="product-rating">★★★★★ <span>(276)</span></div>
+            <div class="price-row">
+                <span class="price">₹8,299</span>
+                <span class="old-price">₹10,999</span>
+                <span class="discount">25% OFF</span>
             </div>
             <button class="add-cart-btn">ADD TO BAG</button>
         </div>
