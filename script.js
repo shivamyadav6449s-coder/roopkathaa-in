@@ -1236,6 +1236,17 @@
     });
     if (photoZoomBackdrop) photoZoomBackdrop.addEventListener("click", closeAllPanels);
 
+    // Hover zoom (desktop): the zoomed photo follows the cursor.
+    if (photoZoomTrack) photoZoomTrack.addEventListener("mousemove", function (e) {
+        var slide = e.target.closest(".pz-slide");
+        if (!slide) return;
+        var img = slide.querySelector("img");
+        var r = slide.getBoundingClientRect();
+        var x = ((e.clientX - r.left) / r.width) * 100;
+        var y = ((e.clientY - r.top) / r.height) * 100;
+        img.style.transformOrigin = x + "% " + y + "%";
+    });
+
     // Swipe left/right on touch screens.
     var pzTouchX = null;
     if (photoZoomViewport) {
