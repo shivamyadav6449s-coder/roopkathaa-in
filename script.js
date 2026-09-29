@@ -12,8 +12,8 @@
        Update these two values with your real details —
        orders are sent to this WhatsApp number, and UPI
        payments go to this UPI ID. */
-    var STORE_WHATSAPP = "919999999999";   // TODO: replace with your WhatsApp number, country code + number, no + or spaces
-    var STORE_UPI_ID = "roopkathaa@upi";   // TODO: replace with your real UPI ID
+    var STORE_WHATSAPP = "917408072382";   // WhatsApp number: country code (91) + number, no + or spaces
+    var STORE_UPI_ID = "8545859568@pthdfc";   // store UPI ID
     var STORE_UPI_NAME = "Roopkathaa";
     var SHIPPING_FEE = 99;
     var FREE_SHIP_THRESHOLD = 1999;
